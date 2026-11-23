@@ -35,6 +35,7 @@ G = 9.8  # m/s^2
 RES_REGLA = 0.1    # cm, division minima de la regla
 RES_GRAMERA = 1.0  # g, division minima de la gramera (balanza de cocina)
 LECTURAS_POR_DATO = 3  # y = lectura total - largo del objeto - L0  -> tres lecturas de regla
+ANCHO_HIST = 0.05  # cm, ancho de cada intervalo del histograma de residuos
 
 # Valores criticos (tablas) para 95 % de confianza: t(0,975; gl) y F(0,95; 1, gl)
 T975 = {5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306}
@@ -300,9 +301,13 @@ def graficas(a, b):
 
     # 7. Histograma de residuos
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    ax.hist(e, bins=np.arange(-0.75, 1.26, 0.25), edgecolor="white", color=NARANJA)
+    bordes = np.arange(-0.70, 1.0 + ANCHO_HIST / 2, ANCHO_HIST)
+    ax.hist(e, bins=bordes, edgecolor="white", color=NARANJA)
     ax.axvline(0, color="k", ls="--")
-    ax.set_xlabel("Residuo e (cm)")
+    ax.set_xticks(np.arange(-0.7, 1.01, 0.1))
+    ax.tick_params(axis="x", labelsize=8)
+    ax.set_yticks([0, 1, 2])
+    ax.set_xlabel(f"Residuo e (cm), intervalos de {ANCHO_HIST:.2f} cm".replace(".", ","))
     ax.set_ylabel("Cantidad de datos")
     ax.set_title("Histograma de los residuos")
     guardar("07_histograma.png")
@@ -313,11 +318,13 @@ def graficas(a, b):
     a2, b2 = ajustar(x2, y2)
     fig, ax = plt.subplots(figsize=(8, 5))
     puntos(ax, etiquetas=False)
-    ax.scatter([X[i]], [Y[i]], s=180, facecolors="none", edgecolors=ROJO, lw=1.5, label="Parlante (dato retirado)")
-    ax.plot(xs, a * xs + b, color=ROJO, label=f"Con los 10 datos: y = {a:.4f}x {b:+.3f}")
-    ax.plot(xs, a2 * xs + b2, "--", color=VERDE, label=f"Sin el parlante: y = {a2:.4f}x {b2:+.3f}")
-    ax.set_title("Influencia del dato del parlante en la recta")
-    ax.legend(fontsize=9)
+    ax.scatter([X[i]], [Y[i]], s=180, facecolors="none", edgecolors=ROJO, lw=1.5,
+               label="Parlante (residuo más grande)")
+    ax.tick_params(labelsize=12)
+    ax.plot(xs, a * xs + b, color=ROJO, lw=2.5, label="Recta final (10 datos)")
+    ax.plot(xs, a2 * xs + b2, "--", color=VERDE, lw=2.5, label="Prueba sin el parlante")
+    ax.set_title("Sensibilidad de la recta al dato del parlante")
+    ax.legend(fontsize=13)
     guardar("08_influencia.png")
 
     graficas_gradiente(a, b)
@@ -471,8 +478,8 @@ def graficas_recomendaciones(a, b, ic, ui, ks_mc, ks_jk, polis, origen):
              color=[ROJO if CORTOS[i] == "parlante" else AZUL for i in orden])
     ax1.axvline(ic["k"], color="k", lw=1.2)
     ax1.axvspan(ic["k_lo"], ic["k_hi"], color=NARANJA, alpha=0.15, label="IC 95 % de k")
-    ax1.set_xlabel("k al quitar ese dato (N/m)")
-    ax1.set_title("¿Cuánto cambia k si se quita un dato?", fontsize=12)
+    ax1.set_xlabel("k calculado sin esa medición (N/m)")
+    ax1.set_title("Sensibilidad de k a cada medición", fontsize=12)
     ax1.legend(loc="lower right", fontsize=9)
     ax1.grid(axis="y", visible=False)
     ax2.hist(ks_mc, bins=60, color=VERDE, alpha=0.85, label="Error de los instrumentos\n(Monte Carlo, 20 000 repeticiones)")
@@ -485,33 +492,54 @@ def graficas_recomendaciones(a, b, ic, ui, ks_mc, ks_jk, polis, origen):
     ax2.legend(fontsize=8.5, loc="upper right")
     guardar("14_sensibilidad_k.png")
 
-    # 15. Regresion polinomica
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.8), gridspec_kw=dict(width_ratios=[1.25, 1]))
-    xe = np.linspace(-20, 450, 400)
-    ax1.scatter(x, y, color="k", zorder=4, s=35, label="Datos")
-    for r, col, est in zip(polis, [ROJO, NARANJA, VERDE, MORADO], ["-", "--", "-.", ":"]):
-        ax1.plot(xe, np.polyval(r["coef"], xe), est, color=col, lw=2.2 if r["grado"] == 1 else 1.8,
-                 label=f"grado {r['grado']}")
-    ax1.axvspan(410, 450, color=GRIS, alpha=0.12)
-    ax1.text(415, 0.3, "fuera\nde los\ndatos", fontsize=8, color=GRIS)
-    ax1.set_ylim(-1, 8)
+    # 15. Regresion polinomica: curvas y diferencia de cada polinomio con la recta
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6.4))
+    xe = np.linspace(0, 410, 400)
+    lin = polis[0]["coef"]
+    colores, estilos = [ROJO, NARANJA, VERDE, MORADO], ["-", "--", "-.", ":"]
+    ax1.scatter(x, y, color="k", zorder=4, s=45, label="Datos medidos")
+    for r, col, est in zip(polis, colores, estilos):
+        ax1.plot(xe, np.polyval(r["coef"], xe), est, color=col, lw=3 if r["grado"] == 1 else 2.4,
+                 label="grado 1 (recta)" if r["grado"] == 1 else f"grado {r['grado']}")
     ax1.set_xlabel("Masa colgada x (g)")
     ax1.set_ylabel("Estiramiento y (cm)")
-    ax1.set_title("Polinomios de grado 1 a 4", fontsize=12)
-    ax1.legend(fontsize=9, loc="upper left")
-    g = np.arange(len(polis))
-    ax2.bar(g - 0.2, [r["rmse"] for r in polis], 0.4, color=AZUL, label="RMSE con los datos usados")
-    cvs = [r["cv"] for r in polis]
-    ax2.bar(g + 0.2, np.minimum(cvs, 1.2), 0.4, color=NARANJA, label="Error al predecir un dato\nque no se usó (validación cruzada)")
-    for gi, v in zip(g, cvs):
-        ax2.text(gi + 0.2, min(v, 1.2) + 0.02, f"{v:.2f}".replace(".", ","), ha="center", fontsize=9)
-    ax2.set_xticks(g, [f"grado {r['grado']}" for r in polis])
-    ax2.set_ylim(0, 1.35)
-    ax2.set_ylabel("cm")
-    ax2.set_title("Más grado: menos error en los datos,\npero no mejor predicción", fontsize=12)
-    ax2.legend(fontsize=8.5, loc="upper left")
-    ax2.grid(axis="x", visible=False)
+    ax1.set_title("Polinomios de grado 1 a 4 (mismos datos)")
+    ax1.legend(fontsize=13, loc="upper left")
+    ax2.axhline(0, color=ROJO, lw=3, label="recta (referencia)")
+    ax2.scatter(x, y - np.polyval(lin, x), color="k", zorder=4, s=45, label="datos (residuo respecto a la recta)")
+    for r, col, est in zip(polis[1:], colores[1:], estilos[1:]):
+        ax2.plot(xe, np.polyval(r["coef"], xe) - np.polyval(lin, xe), est, color=col, lw=2.4, label=f"grado {r['grado']}")
+    ax2.axhspan(-ic["s"], ic["s"], color=GRIS, alpha=0.15, label=f"± error estándar s = {ic['s']:.2f} cm".replace(".", ","))
+    ax2.set_xlabel("Masa colgada x (g)")
+    ax2.set_ylabel("Diferencia con la recta (cm)")
+    ax2.set_title("Diferencia de cada polinomio con la recta (ampliada)")
+    ax2.legend(fontsize=11.5, loc="upper left", ncol=2)
+    ax2.set_ylim(-1.0, 1.6)
+    for axx in (ax1, ax2):
+        axx.tick_params(labelsize=13)
+        axx.xaxis.label.set_size(14)
+        axx.yaxis.label.set_size(14)
+        axx.title.set_size(16)
     guardar("15_polinomios.png")
+
+    # 17. Error de cada modelo con los datos usados y con datos nuevos
+    fig, ax2 = plt.subplots(figsize=(10, 5.5))
+    g = np.arange(len(polis))
+    ax2.bar(g - 0.2, [r["rmse"] for r in polis], 0.4, color=AZUL, label="RMSE con los datos usados en el ajuste")
+    cvs = [r["cv"] for r in polis]
+    ax2.bar(g + 0.2, np.minimum(cvs, 1.2), 0.4, color=NARANJA,
+            label="Error al predecir cada dato con un ajuste\nhecho con los otros 9 (validación cruzada)")
+    for gi, v, rr in zip(g, cvs, polis):
+        txt = f"{v:.2f}".replace(".", ",") + ("\n(barra recortada)" if v > 1.2 else "")
+        ax2.text(gi + 0.2, min(v, 1.2) + 0.02, txt, ha="center", fontsize=12, weight="bold")
+        ax2.text(gi - 0.2, rr["rmse"] + 0.02, f"{rr['rmse']:.2f}".replace(".", ","), ha="center", fontsize=12)
+    ax2.set_xticks(g, ["grado 1\n(recta)", "grado 2", "grado 3", "grado 4"], fontsize=12)
+    ax2.set_ylim(0, 1.5)
+    ax2.set_ylabel("cm")
+    ax2.set_title("Más grado baja el error en los datos usados, pero no predice mejor")
+    ax2.legend(fontsize=10.5, loc="upper left")
+    ax2.grid(axis="x", visible=False)
+    guardar("17_polinomios_error.png")
 
     # 16. RMSE en unidades del fenomeno
     fig, ax = plt.subplots(figsize=(8, 4.2))

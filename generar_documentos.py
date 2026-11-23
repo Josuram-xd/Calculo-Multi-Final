@@ -195,8 +195,8 @@ T_OTRAS = tabla(
 
 T_INFL = tabla(
     ["Ajuste", "a (cm/g)", "b (cm)", "S mín (cm²)", "RMSE (cm)", "R²", "k (N/m)"],
-    [["Con los 10 datos", c(a, 5), c(b, 3), c(S, 2), c(RMSE, 2), c(R2, 4), c(k, 1)],
-     ["Sin el parlante (9 datos)", c(a2, 5), c(b2, 3), c(S2, 2), c(RMSE2, 2), c(R22, 4), c(k2, 1)]])
+    [["Resultado final (10 datos)", c(a, 5), c(b, 3), c(S, 2), c(RMSE, 2), c(R2, 4), c(k, 1)],
+     ["Prueba de sensibilidad sin el parlante (9 datos)", c(a2, 5), c(b2, 3), c(S2, 2), c(RMSE2, 2), c(R22, 4), c(k2, 1)]])
 
 T_SUMAS2 = tabla(
     ["Suma", "Con 10 datos", "Se resta (parlante)", "Con 9 datos"],
@@ -230,7 +230,7 @@ FOTOS = """
 | ![](fotos/img8.jpg){width=3.2cm} | ![](fotos/img9.jpg){width=3.2cm} | ![](fotos/img10.jpg){width=3.2cm} | ![](fotos/img11.jpg){width=3.2cm} |
 | Llave grande | Taza plástica | Rollo de cinta | Libro pequeño |
 
-: Imágenes ilustrativas de las otras cuatro cargas. No son fotografías de la medición: representan cómo se colgó cada objeto. Los valores de la tabla para estos objetos sí fueron medidos por el equipo.
+: Imágenes de referencia de las otras cuatro cargas: muestran cómo se colgó cada objeto, pero no son fotografías de la medición. Sus medidas están en la tabla de datos.
 """
 
 PSEUDO = """
@@ -379,7 +379,7 @@ Variable independiente: $x$ = masa colgada (g). Variable dependiente: $y$ = esti
 
 El diagrama de dispersión muestra que el estiramiento crece cuando crece la masa y que los puntos se agrupan alrededor de una línea recta, sin una curvatura clara. Por eso el modelo $y = ax + b$ es razonable para estos datos, y además es el que predice la Ley de Hooke.
 
-También se ven dos detalles que se analizan más adelante: con las cargas más livianas (15 g y 70 g) el resorte casi no se estira, y el punto del parlante (220 g) queda por encima de la tendencia de sus vecinos.
+También se ven dos detalles que se analizan más adelante: con las cargas más livianas (15 g y 70 g) el resorte se estira menos de lo que indica la tendencia, y el punto del parlante (220 g) queda por encima de la tendencia de sus vecinos.
 
 # 4. Construcción del modelo
 
@@ -565,7 +565,7 @@ La recta $y = «m:a4»\,x - 0{,}070$ representa bien la tendencia general: sube 
 : Valores predichos y residuos.
 
 - **Puntos con mayor desviación:** el «o1» («o1x» g), con un residuo de «o1e» cm; el «o2» («o2x» g), con «o2e» cm; y el «o3» («o3x» g), con «o3e» cm.
-- **Punto alejado de la tendencia:** el parlante se estiró bastante más de lo que la recta predice. Es el candidato a dato atípico y su influencia se estudia en la sección 12.
+- **Punto alejado de la tendencia:** el parlante se estiró bastante más de lo que la recta predice. Su residuo es el doble del siguiente; en la sección 12 se mide cuánto depende el resultado de ese punto.
 - **Punto con más palanca:** el alicate (410 g) es la masa más alejada del resto, así que es el dato que más controla la pendiente de la recta.
 - **Intercepto:** $b^* = «m:b3»$ cm es menor que la resolución de la regla, es decir, prácticamente cero, como predice la Ley de Hooke (sin carga no hay estiramiento).
 
@@ -573,12 +573,12 @@ La recta $y = «m:a4»\,x - 0{,}070$ representa bien la tendencia general: sube 
 
 ![Residuos en función de la masa.](figuras/06_residuos.png){width=13cm}
 
-![Histograma de los residuos.](figuras/07_histograma.png){width=10cm}
+![Histograma de los residuos con intervalos de 0,05 cm (la mitad de la división de la regla).](figuras/07_histograma.png){width=13cm}
 
 - **Centrados en cero:** sí. La suma de los residuos es cero (salvo redondeo), lo cual es consecuencia directa de la ecuación $\partial S/\partial b = 0$. Hay 5 residuos positivos y 5 negativos.
 - **Tendencia o patrón:** los signos se alternan sin un orden claro a lo largo de $x$; no se ve una curva definida. Hay un indicio leve: en los dos extremos con mayor desviación (70 g y 410 g) el residuo es negativo, y en la zona media-alta (190 g a 300 g) es positivo. Con solo 10 datos no se puede afirmar que sea una desviación sistemática.
 - **Dispersión:** no aumenta ni disminuye de forma ordenada con $x$. Los residuos grandes aparecen tanto en masas bajas (70 g) como altas (220 g y 410 g).
-- **Valores atípicos:** el parlante («ep» cm) es el único residuo que se separa del grupo; en el histograma es la barra aislada a la derecha. Los otros nueve están entre −0,6 y +0,4 cm.
+- **Valores atípicos:** el parlante («ep» cm) es el único residuo que se separa del grupo; en el histograma, con intervalos de 0,05 cm, es la barra aislada a la derecha, mientras que los demás se reparten a ambos lados del cero sin acumularse en uno. Los otros nueve están entre −0,6 y +0,4 cm.
 - **Regiones con desviación:** con las cargas livianas (15 g y 70 g) el resorte se estira menos de lo que indicaría la pendiente general. Es un comportamiento conocido de los resortes de espiras juntas: tienen una tensión inicial y necesitan una fuerza mínima antes de empezar a abrirse.
 
 En conjunto, el comportamiento de los residuos es compatible con un modelo lineal: están centrados en cero y no muestran una estructura evidente. Las desviaciones se explican mejor por la forma de medir que por una falla del modelo.
@@ -645,12 +645,12 @@ La banda de confianza indica dónde está la recta verdadera (en $x = 200$ g, ±
 
 ## 11.4 Sensibilidad de la constante del resorte
 
-Se midió cuánto cambia $k$ de dos formas:
+Se midió cuánto cambia $k$ de dos formas. Ninguna medición se descarta: el valor final de $k$ usa siempre los 10 datos; estas pruebas solo indican cuánto depende el resultado de cada punto y de los instrumentos.
 
-- **Quitando un dato a la vez:** $k$ varía entre «jkMin» N/m (sin el «jkMinObj») y «jkMax» N/m (sin el «jkMaxObj»). El alicate es el dato con más palanca: es la masa más alejada del centro.
-- **Perturbando las lecturas dentro del error de los instrumentos** (Monte Carlo, 20 000 repeticiones): $k$ solo varía entre «mcLo» y «mcHi» N/m (desviación estándar «mcSd» N/m).
+- **Ajuste sin cada medición, una a la vez:** se repite el ajuste diez veces, cada vez sin una medición distinta. $k$ queda entre «jkMin» N/m (ajuste sin el «jkMinObj») y «jkMax» N/m (ajuste sin el «jkMaxObj»). El alicate es la medición con más palanca: es la masa más alejada del centro.
+- **Variando las lecturas dentro del error de los instrumentos** (Monte Carlo: 20 000 ajustes, cada lectura de la regla varía al azar dentro de ±0,05 cm y cada masa dentro de ±0,5 g): $k$ solo varía entre «mcLo» y «mcHi» N/m (desviación estándar «mcSd» N/m).
 
-![Sensibilidad de k: al quitar cada dato y por el error de los instrumentos.](figuras/14_sensibilidad_k.png){width=15cm}
+![Sensibilidad de k a cada medición y al error de los instrumentos.](figuras/14_sensibilidad_k.png){width=15cm}
 
 La incertidumbre de $k$ viene de la dispersión de los datos (y de pocos datos), no de la regla ni de la gramera.
 
@@ -658,7 +658,9 @@ La incertidumbre de $k$ viene de la dispersión de los datos (y de pocos datos),
 
 Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4 con el mismo criterio de mínimos cuadrados.
 
-![Polinomios de grado 1 a 4 y su error al predecir datos que no se usaron.](figuras/15_polinomios.png){width=15cm}
+![Polinomios de grado 1 a 4. A la derecha, la diferencia de cada polinomio con la recta en escala ampliada: todas las curvas quedan dentro de ± el error estándar de los datos.](figuras/15_polinomios.png){width=16cm}
+
+![Error de cada modelo con los datos usados y al predecir un dato con un ajuste hecho con los otros 9.](figuras/17_polinomios_error.png){width=14cm}
 
 «T_POLI»
 
@@ -671,21 +673,23 @@ Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4
 
 Conclusión: con estos datos **la recta es el modelo adecuado**, como predice la Ley de Hooke.
 
-# 12. Análisis adicional: influencia de un dato (opción B)
+# 12. Análisis adicional: sensibilidad al dato del parlante (opción B)
 
-Se retiró temporalmente el dato del parlante ($x = «xp»$ g, $y = «yp»$ cm), que tiene el residuo más grande, y se repitió todo el ajuste con los 9 datos restantes.
+**Por qué este dato.** El parlante ($x = «xp»$ g, $y = «yp»$ cm) tiene el residuo más grande, «ep» cm, el doble que el siguiente. Una causa posible es su forma: no cuelga del mismo punto que los demás objetos y su largo es difícil de medir. Pero no hay una razón experimental que demuestre que la medición esté mal, así que **el resultado final conserva los 10 datos**. Eliminar mediciones sin una causa comprobada sería manipular el resultado.
 
-![Recta con los 10 datos y recta sin el parlante.](figuras/08_influencia.png){width=14cm}
+**Qué se hizo.** Como prueba de sensibilidad, se repitió el ajuste de la sección 5 sin ese punto, solo para responder: si esa medición estuviera mal, ¿cuánto cambiaría la recta?
+
+![Recta final con los 10 datos y prueba de sensibilidad sin el parlante.](figuras/08_influencia.png){width=14cm}
 
 «T_INFL»
 
-: Efecto de retirar el dato del parlante.
+: Resultado final y prueba de sensibilidad.
 
 - La pendiente cambia un «dap» % y el intercepto cambia «db» cm. La recta casi no se mueve.
 - El error sí cambia mucho: $S$ baja de «S2d» a «S2» cm², porque ese solo punto aportaba casi la mitad del error total.
 - La constante del resorte pasa de «k» a «k2» N/m.
 
-Conclusión: el parlante es un dato **atípico pero poco influyente**. Empeora las medidas de calidad, pero no cambia de forma importante la recta, porque su masa (220 g) está cerca del centro de los datos. Un punto igual de desviado en un extremo, como el alicate, habría girado la recta mucho más. Por eso se decidió conservar el dato: fue medido igual que los demás y no hay una razón experimental para descartarlo.
+Conclusión: aunque el parlante se aparta de la recta, **el resultado casi no depende de él**: aumenta el error, pero no cambia de forma importante la recta, porque su masa (220 g) está cerca del centro de los datos. Un punto igual de desviado en un extremo, como el alicate, habría girado la recta mucho más. El valor de $k$ de la prueba («k2» N/m) queda dentro del intervalo de confianza del resultado final.
 
 # 13. Interpretación física: constante del resorte
 
@@ -703,7 +707,7 @@ Es decir, hacen falta unos «k» N (el peso de unos 6,6 kg) para estirar este re
 4. **Los tres métodos coinciden.** El cálculo a mano, el código propio y `numpy.polyfit` dan los mismos parámetros; la única diferencia es el redondeo del cálculo manual. El computador verificó el resultado, no lo reemplazó.
 5. **La Ley de Hooke se cumple razonablemente.** $R^2 = «m:R2»$, el intercepto es compatible con cero y los residuos no muestran un patrón claro. La constante estimada es $k = «m:k» \pm «m:uK»$ N/m (entre «kLo» y «kHi» N/m con 95 % de confianza).
 6. **Las curvas de nivel enseñan algo que la recta no muestra.** La inclinación de las elipses indica que pendiente e intercepto se compensan: los datos determinan mejor la combinación de ambos que cada uno por separado.
-7. **Un dato atípico no siempre es influyente.** Retirar el parlante reduce el error a menos de la mitad, pero cambia la pendiente menos del 3 %; el dato más influyente es el alicate.
+7. **El resultado depende poco del dato más desviado.** En la prueba de sensibilidad sin el parlante, el error baja a menos de la mitad, pero la pendiente cambia menos del 3 %; por eso se conservan los 10 datos. La medición con más peso en la pendiente es el alicate.
 8. **Ninguna otra función es mejor.** Los polinomios de grado 2 a 4 bajan $S$, pero sus términos extra no son significativos y predicen peor datos nuevos.
 9. **El error no viene de los instrumentos.** El RMSE («rmseMm» mm, equivalente a unos «rmseG» g) es unas «razon» veces la incertidumbre de la regla, y la de la gramera es despreciable. Domina el método de medición.
 
@@ -714,7 +718,7 @@ Es decir, hacen falta unos «k» N (el peso de unos 6,6 kg) para estirar este re
 - **Método indirecto.** El estiramiento se obtuvo restando el largo del objeto a la lectura total. Los objetos tienen formas muy distintas y no todos cuelgan del mismo punto, lo que explica una dispersión (0,43 cm) mayor que la resolución de la regla (0,1 cm).
 - **Tensión inicial del resorte.** Con cargas livianas el resorte casi no se estira. El modelo lineal no describe bien esa zona; un modelo más fiel usaría solo las cargas que superan esa tensión inicial.
 - **Rango de validez.** La recta solo vale entre 0 y 410 g. No se debe extrapolar: con más carga el resorte puede superar su límite elástico y deformarse de forma permanente.
-- **Registro fotográfico incompleto.** Cuatro de las cargas se documentan con imágenes ilustrativas y no con fotografías de la medición.
+- **Registro fotográfico incompleto.** Cuatro cargas no tienen fotografía de la medición, solo una imagen de referencia de cómo se colgaron.
 
 ## 14.2 Recomendaciones
 
@@ -1062,9 +1066,9 @@ $$k = \frac{g}{a^*} = \frac{9{,}8}{«m:a10»} = «m:k»\ \text{N/m}$$
 
 (Unidades: $\dfrac{\text{m/s}^2}{\text{m/kg}} = \dfrac{\text{kg}}{\text{s}^2} = \dfrac{\text{N}}{\text{m}}$.)
 
-# Paso 11. Análisis adicional: quitar el dato del parlante
+# Paso 11. Análisis adicional: prueba de sensibilidad sin el parlante
 
-Se retira el punto $(«m:xp»;\ «m:yp»)$ y se repiten los pasos 4 y 5 con 9 datos. No hace falta rehacer la tabla: basta restar a cada suma lo que aportaba ese punto.
+Solo como prueba de sensibilidad (el resultado final usa los 10 datos), se repiten los pasos 4 y 5 sin el punto $(«m:xp»;\ «m:yp»)$, que tiene el residuo más grande. No hace falta rehacer la tabla: basta restar a cada suma lo que aportaba ese punto.
 
 «T_SUMAS2»
 
@@ -1081,7 +1085,7 @@ $$a^* = \frac{«m:numA2»}{«m:D2»} = «m:a2»$$
 - $«m:Sy2» - «m:aSx2» = «m:SyaSx2»$
 - $b^* = «m:SyaSx2» \div «n2» = «m:b2»$
 
-Recta sin el parlante: $y = «m:a24»\,x - «m:b23abs»$. La pendiente cambió un «dap» %.
+Recta de la prueba sin el parlante: $y = «m:a24»\,x - «m:b23abs»$. La pendiente cambió un «dap» %.
 
 # Resumen de resultados
 
