@@ -14,7 +14,9 @@ import pypandoc
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-from regresion_hooke import OBJETOS, OTRAS_RECTAS, X, Y, ajustar, calidad, error_S, residuos, sumas
+from regresion_hooke import (CORTOS, OBJETOS, OTRAS_RECTAS, RES_GRAMERA, RES_REGLA, X, Y, ajustar, banda, calidad,
+                             error_S, incertidumbre_instrumental, intervalos, jackknife, montecarlo, polinomios,
+                             residuos, sumas)
 
 RAIZ = Path(__file__).parent
 L0 = 3.3  # longitud del resorte sin carga (cm)
@@ -121,6 +123,31 @@ def tabla(cab, filas, anchos=None):
     return "\n".join(out)
 
 
+# Recomendaciones del docente: incertidumbre, sensibilidad, polinomios y RMSE en unidades
+IC = intervalos(X, Y)
+UI = incertidumbre_instrumental()
+KS_JK = jackknife(X, Y)
+KS_MC = montecarlo(UI)
+POLIS, ORIGEN = polinomios()
+jmin, jmax = KS_JK.index(min(KS_JK)), KS_JK.index(max(KS_JK))
+mc_lo, mc_hi = np.percentile(KS_MC, [2.5, 97.5])
+V.update({
+    "sReg": c(IC["s"], 2), "tCrit": c(IC["t"], 3), "seA": c(IC["se_a"], 5), "seB": c(IC["se_b"], 3),
+    "aLo": c(IC["a_lo"], 5), "aHi": c(IC["a_hi"], 5), "bLo": c(IC["b_lo"], 3), "bHi": c(IC["b_hi"], 3),
+    "kLo": c(IC["k_lo"], 1), "kHi": c(IC["k_hi"], 1), "uK": c(IC["u_k"], 1), "kRango": c(IC["k_hi"] - IC["k_lo"], 1),
+    "bandaC": c(banda(IC, np.array([200.0]))[0], 2), "bandaP": c(banda(IC, np.array([200.0]), True)[0], 2),
+    "jkMin": c(KS_JK[jmin], 1), "jkMax": c(KS_JK[jmax], 1), "jkMinObj": CORTOS[jmin], "jkMaxObj": CORTOS[jmax],
+    "mcLo": c(mc_lo, 1), "mcHi": c(mc_hi, 1), "mcSd": c(float(np.std(KS_MC)), 2),
+    "resR": c(RES_REGLA), "resG": c(RES_GRAMERA, 0), "uLect": c(UI["u_lect"], 3), "uY": c(UI["u_y"], 2),
+    "eMaxY": c(UI["e_max_y"], 2), "uX": c(UI["u_x"], 2), "eMaxX": c(UI["e_max_x"], 1), "uXy": c(a_cod * UI["u_x"], 4),
+    "razon": c(RMSE / UI["u_y"], 0), "rmseMm": c(10 * RMSE, 1), "rmseG": c(RMSE / a, 0),
+    "rmseN": c(RMSE / a / 1000 * G, 2), "rmseMedia": c(100 * RMSE / ym, 0), "rmseRes": c(RMSE / RES_REGLA, 1),
+    "orA": c(ORIGEN["a"], 5), "orS": c(ORIGEN["S"], 2), "orK": c(ORIGEN["k"], 1),
+    "F2": c(POLIS[1]["F"], 2), "F2c": c(POLIS[1]["F_crit"], 2), "F3": c(POLIS[2]["F"], 2),
+    "F3c": c(POLIS[2]["F_crit"], 2), "F4": c(POLIS[3]["F"], 2), "F4c": c(POLIS[3]["F_crit"], 2),
+    "cv1": c(POLIS[0]["cv"], 2), "cv3": c(POLIS[2]["cv"], 2), "cv4": c(POLIS[3]["cv"], 2),
+})
+
 # ------------------------------------------------------------------ tablas
 T_DATOS = tabla(
     ["N.º", "Objeto colgado", "Masa colgada x (g)", "Largo del objeto (cm)", "Lectura total (cm)",
@@ -175,6 +202,18 @@ T_SUMAS2 = tabla(
     ["Suma", "Con 10 datos", "Se resta (parlante)", "Con 9 datos"],
     [["n", n, 1, n2], ["Σx", Sx, X[ip], Sx2], ["Σy", c(Sy), c(Y[ip]), c(Sy2)],
      ["Σx²", Sxx, f"{X[ip]}² = {X[ip] ** 2}", Sxx2], ["Σxy", c(Sxy), f"{X[ip]}·{c(Y[ip])} = {c(X[ip] * Y[ip])}", c(Sxy2)]])
+
+T_IC = tabla(
+    ["Parámetro", "Estimado", "Error estándar", "Mínimo (IC 95 %)", "Máximo (IC 95 %)"],
+    [["a (cm/g)", c(a_cod, 5), c(IC["se_a"], 5), c(IC["a_lo"], 5), c(IC["a_hi"], 5)],
+     ["b (cm)", c(b_cod, 3), c(IC["se_b"], 3), c(IC["b_lo"], 3), c(IC["b_hi"], 3)],
+     ["**k (N/m)**", f"**{c(IC['k'], 1)}**", c(IC["u_k"], 1), f"**{c(IC['k_lo'], 1)}**", f"**{c(IC['k_hi'], 1)}**"]])
+
+T_POLI = tabla(
+    ["Modelo", "S (cm²)", "RMSE (cm)", "R²", "R² ajustado", "Error al predecir (cm)", "t del término nuevo"],
+    [[("Lineal (Hooke)" if r["grado"] == 1 else f"Grado {r['grado']}"), c(r["S"], 2), c(r["rmse"], 2), c(r["r2"], 4),
+      c(r["r2a"], 4), c(r["cv"], 2),
+      f"{c(r['t_lider'], 2)} {'>' if r['t_lider'] > r['t_crit'] else '<'} {c(r['t_crit'], 3)}"] for r in POLIS])
 
 FOTOS = """
 | | | |
@@ -560,6 +599,78 @@ El denominador («ST» cm²) es el error de la mejor recta horizontal $y = \bar{
 
 **Relación con el propósito del modelo.** El propósito es comprobar la Ley de Hooke y estimar la constante del resorte. Para describir la tendencia y estimar $k$, el ajuste es adecuado. Para predecir el estiramiento de un objeto concreto la precisión es limitada: un error típico de «RMSE2d» cm es grande cuando el estiramiento es de 1 o 2 cm (cargas menores de 150 g), y pequeño frente a los 5 cm de las cargas mayores.
 
+## 11.1 El RMSE en las unidades del fenómeno
+
+El RMSE se puede leer de varias formas, todas en unidades que tienen sentido físico:
+
+- **En longitud:** «RMSE2d» cm = «rmseMm» mm. Es lo que, en promedio, la recta se equivoca en cada medición.
+- **En masa:** como la pendiente es $a^* = «m:a4»$ cm/g, un error de «RMSE2d» cm equivale a unos «rmseG» g. Con este montaje no se puede "pesar" un objeto con una precisión mejor que esa.
+- **En fuerza:** «rmseG» g × 9,8 m/s² ≈ «rmseN» N.
+- **En proporción:** es el «rmsep» % del rango de estiramientos, el «rmseMedia» % del estiramiento promedio («ym» cm) y «rmseRes» veces la resolución de la regla.
+
+El error estándar de la regresión, que divide entre $n - 2$ porque se estimaron dos parámetros, es $s = \sqrt{S/(n-2)} = «m:sReg»$ cm; es el que se usa en los intervalos de confianza de la sección 11.3.
+
+## 11.2 Errores de los instrumentos: regla y gramera
+
+**Regla (resolución «resR» cm).** Cada lectura puede estar errada hasta media división, ±0,05 cm. Tomando una distribución uniforme, la incertidumbre estándar de una lectura es $u = 0{,}1/(2\sqrt{3}) = «m:uLect»$ cm. El estiramiento $y = \text{lectura total} - \text{largo del objeto} - L_0$ combina **tres lecturas**, así que
+
+$$u_y = \sqrt{3}\,u = «m:uY»\ \text{cm}, \qquad |\Delta y|_{\max} = 3 \cdot 0{,}05 = «m:eMaxY»\ \text{cm (peor caso)}.$$
+
+**Gramera (resolución «resG» g).** $u_x = 1/(2\sqrt{3}) = «m:uX»$ g. Su efecto sobre el estiramiento es $a^* u_x = «m:uXy»$ cm: despreciable.
+
+**Comparación.** El RMSE («RMSE2d» cm) es unas **«razon» veces** $u_y$. En la figura, varias barras de error de ±«eMaxY» cm no alcanzan la recta. La dispersión de los datos **no viene de los instrumentos**, sino del método: objetos de formas distintas, punto de enganche variable y un estiramiento que sale de restar longitudes.
+
+![Datos con su error instrumental máximo y franja de ± RMSE alrededor de la recta.](figuras/12_incertidumbre.png){width=13cm}
+
+![Tamaño del RMSE comparado con la precisión de la regla.](figuras/16_rmse_escala.png){width=12cm}
+
+**Propagación a la constante del resorte.** Como $k = g/a$, $u_k = \left|\partial k / \partial a\right| u_a = k\,u_a/a = «m:uK»$ N/m.
+
+## 11.3 Intervalos de confianza: valor mínimo y máximo
+
+Con $s = «m:sReg»$ cm y $t_{0{,}975;\,8} = «m:tCrit»$ (8 grados de libertad):
+
+$$SE(a) = \frac{s}{\sqrt{\sum (x_i - \bar{x})^2}}, \qquad SE(b) = s\sqrt{\frac{1}{n} + \frac{\bar{x}^2}{\sum (x_i - \bar{x})^2}}, \qquad \text{IC}_{95\,\%} = \text{valor} \pm t \cdot SE.$$
+
+«T_IC»
+
+: Intervalos de confianza al 95 %. El intervalo de $k$ se obtiene invirtiendo los extremos del de $a$.
+
+- El intervalo de $b$ **contiene el 0**: los datos son compatibles con una recta por el origen, como predice la Ley de Hooke. Si se fuerza $y = ax$, se obtiene $a = «m:orA»$ cm/g, $S = «m:orS»$ cm² (casi igual) y $k = «m:orK»$ N/m.
+- La constante del resorte está entre **«kLo» y «kHi» N/m** con 95 % de confianza (amplitud «kRango» N/m).
+
+![Bandas de confianza (la recta) y de predicción (un dato nuevo) al 95 %.](figuras/13_bandas_confianza.png){width=13cm}
+
+La banda de confianza indica dónde está la recta verdadera (en $x = 200$ g, ±«bandaC» cm); la de predicción, dónde caería una medición nueva (±«bandaP» cm). Ambas se abren en los extremos.
+
+## 11.4 Sensibilidad de la constante del resorte
+
+Se midió cuánto cambia $k$ de dos formas:
+
+- **Quitando un dato a la vez:** $k$ varía entre «jkMin» N/m (sin el «jkMinObj») y «jkMax» N/m (sin el «jkMaxObj»). El alicate es el dato con más palanca: es la masa más alejada del centro.
+- **Perturbando las lecturas dentro del error de los instrumentos** (Monte Carlo, 20 000 repeticiones): $k$ solo varía entre «mcLo» y «mcHi» N/m (desviación estándar «mcSd» N/m).
+
+![Sensibilidad de k: al quitar cada dato y por el error de los instrumentos.](figuras/14_sensibilidad_k.png){width=15cm}
+
+La incertidumbre de $k$ viene de la dispersión de los datos (y de pocos datos), no de la regla ni de la gramera.
+
+## 11.5 Regresión polinómica: ¿se ajusta mejor otra función?
+
+Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4 con el mismo criterio de mínimos cuadrados.
+
+![Polinomios de grado 1 a 4 y su error al predecir datos que no se usaron.](figuras/15_polinomios.png){width=15cm}
+
+«T_POLI»
+
+: Comparación de modelos. "Error al predecir" es la validación cruzada dejando un dato fuera.
+
+- Un polinomio de mayor grado **siempre** reduce $S$, porque tiene más parámetros. Eso no prueba que describa mejor el fenómeno.
+- El coeficiente nuevo de cada polinomio **no es significativo**: su estadístico $t$ no supera el valor crítico, así que podría ser cero.
+- La prueba F confirma que la mejora sobre la recta no es real al 95 %: $F_2 = «m:F2» < «m:F2c»$, $F_3 = «m:F3» < «m:F3c»$, $F_4 = «m:F4» < «m:F4c»$.
+- El de grado 4 se equivoca «cv4» cm al predecir un dato que no usó (la recta, «cv1» cm): memoriza los datos en vez de describir la tendencia. El de grado 3 predice parecido a la recta («cv3» cm) solo porque copia la tensión inicial con cargas livianas.
+
+Conclusión: con estos datos **la recta es el modelo adecuado**, como predice la Ley de Hooke.
+
 # 12. Análisis adicional: influencia de un dato (opción B)
 
 Se retiró temporalmente el dato del parlante ($x = «xp»$ g, $y = «yp»$ cm), que tiene el residuo más grande, y se repitió todo el ajuste con los 9 datos restantes.
@@ -590,14 +701,16 @@ Es decir, hacen falta unos «k» N (el peso de unos 6,6 kg) para estirar este re
 2. **Resultado.** Para el resorte estudiado la mejor recta es $y = «m:a4»\,x - 0{,}070$ (cm, con $x$ en g), con error mínimo $S = «m:S2d»$ cm².
 3. **El mínimo es único.** $\det H = «m:detH» > 0$ y $S_{aa} > 0$; como el Hessiano es constante, $S$ es convexa y no existe otra recta mejor. Las curvas de nivel elípticas y las secciones parabólicas muestran lo mismo.
 4. **Los tres métodos coinciden.** El cálculo a mano, el código propio y `numpy.polyfit` dan los mismos parámetros; la única diferencia es el redondeo del cálculo manual. El computador verificó el resultado, no lo reemplazó.
-5. **La Ley de Hooke se cumple razonablemente.** $R^2 = «m:R2»$, el intercepto es prácticamente cero y los residuos no muestran un patrón claro. La constante estimada es $k \approx «m:k»$ N/m.
+5. **La Ley de Hooke se cumple razonablemente.** $R^2 = «m:R2»$, el intercepto es compatible con cero y los residuos no muestran un patrón claro. La constante estimada es $k = «m:k» \pm «m:uK»$ N/m (entre «kLo» y «kHi» N/m con 95 % de confianza).
 6. **Las curvas de nivel enseñan algo que la recta no muestra.** La inclinación de las elipses indica que pendiente e intercepto se compensan: los datos determinan mejor la combinación de ambos que cada uno por separado.
-7. **Un dato atípico no siempre es influyente.** Retirar el parlante reduce el error a menos de la mitad, pero cambia la pendiente menos del 3 %.
+7. **Un dato atípico no siempre es influyente.** Retirar el parlante reduce el error a menos de la mitad, pero cambia la pendiente menos del 3 %; el dato más influyente es el alicate.
+8. **Ninguna otra función es mejor.** Los polinomios de grado 2 a 4 bajan $S$, pero sus términos extra no son significativos y predicen peor datos nuevos.
+9. **El error no viene de los instrumentos.** El RMSE («rmseMm» mm, equivalente a unos «rmseG» g) es unas «razon» veces la incertidumbre de la regla, y la de la gramera es despreciable. Domina el método de medición.
 
 ## 14.1 Reflexión crítica y limitaciones
 
-- **Pocos datos.** Con 10 puntos no se puede distinguir una curvatura leve del ruido de medición.
-- **Una sola lectura por objeto.** No hay repeticiones, así que no se puede estimar la incertidumbre de cada punto ni poner barras de error.
+- **Pocos datos.** Con 10 puntos no se puede distinguir una curvatura leve del ruido de medición (la prueba F no es significativa) y el intervalo de $k$ es amplio («kRango» N/m).
+- **Una sola lectura por objeto.** No hay repeticiones, así que no se puede estimar la incertidumbre estadística (tipo A) de cada punto; solo la de los instrumentos (tipo B, sección 11.2).
 - **Método indirecto.** El estiramiento se obtuvo restando el largo del objeto a la lectura total. Los objetos tienen formas muy distintas y no todos cuelgan del mismo punto, lo que explica una dispersión (0,43 cm) mayor que la resolución de la regla (0,1 cm).
 - **Tensión inicial del resorte.** Con cargas livianas el resorte casi no se estira. El modelo lineal no describe bien esa zona; un modelo más fiel usaría solo las cargas que superan esa tensión inicial.
 - **Rango de validez.** La recta solo vale entre 0 y 410 g. No se debe extrapolar: con más carga el resorte puede superar su límite elástico y deformarse de forma permanente.
@@ -611,7 +724,9 @@ Usar pesas de masa conocida con un mismo gancho, medir directamente la posición
 
 - Harris, C. R., Millman, K. J., van der Walt, S. J., et al. (2020). Array programming with NumPy. *Nature*, 585, 357–362.
 - Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. *Computing in Science & Engineering*, 9(3), 90–95.
+- JCGM (2008). *Evaluación de datos de medición: Guía para la expresión de la incertidumbre de medida (GUM)*. JCGM 100:2008.
 - Molina, A. (2026). *Proyecto de Cálculo Multivariable: Regresión lineal y optimización mediante funciones de varias variables*. Universidad Cooperativa de Colombia.
+- Montgomery, D. C., Peck, E. A., y Vining, G. G. (2012). *Introduction to Linear Regression Analysis* (5.ª ed.). Wiley.
 - Serway, R. A., y Jewett, J. W. (2018). *Física para ciencias e ingeniería* (10.ª ed.). Cengage Learning.
 - Stewart, J. (2018). *Cálculo de varias variables: Trascendentes tempranas* (8.ª ed.). Cengage Learning.
 """
@@ -990,7 +1105,7 @@ V.update({
     "nSxx4": 4 * Sxx * n, "conica": (2 * Sx) ** 2 - 4 * Sxx * n, "b23abs": c(-b2, 3),
     "T_DATOS": T_DATOS, "T_RESTAS": T_RESTAS, "T_SUMAS": T_SUMAS, "T_RES_MANO": T_RES_MANO, "T_ST": T_ST,
     "T_RESIDUOS": T_RESIDUOS, "T_COMP": T_COMP, "T_OTRAS": T_OTRAS, "T_INFL": T_INFL, "T_SUMAS2": T_SUMAS2,
-    "FOTOS": FOTOS, "PSEUDO": PSEUDO,
+    "FOTOS": FOTOS, "PSEUDO": PSEUDO, "T_IC": T_IC, "T_POLI": T_POLI,
 })
 
 
