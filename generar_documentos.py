@@ -658,7 +658,7 @@ La incertidumbre de $k$ viene de la dispersión de los datos (y de pocos datos),
 
 Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4 con el mismo criterio de mínimos cuadrados.
 
-![Polinomios de grado 1 a 4. A la derecha, la diferencia de cada polinomio con la recta en escala ampliada: todas las curvas quedan dentro de ± el error estándar de los datos.](figuras/15_polinomios.png){width=16cm}
+![Polinomios de grado 1 a 4. A la derecha, la diferencia de cada polinomio con la recta en escala ampliada: las diferencias son del tamaño del error estándar de los datos (franja gris).](figuras/15_polinomios.png){width=16cm}
 
 ![Error de cada modelo con los datos usados y al predecir un dato con un ajuste hecho con los otros 9.](figuras/17_polinomios_error.png){width=14cm}
 
