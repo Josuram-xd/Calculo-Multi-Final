@@ -49,7 +49,7 @@ class Diagrama:
         self.ax.plot(xs[:-1], ys[:-1], color=GRIS, lw=1.2)
         self.ax.annotate("", xy=puntos[-1], xytext=puntos[-2], arrowprops=dict(arrowstyle="-|>", lw=1.2, color=GRIS))
         if etiqueta:
-            (x0, y0), (x1, y1) = puntos[0], puntos[1]
+            (x0, y0), (x1, _) = puntos[0], puntos[1]
             self.ax.text(x0 + (0.25 if x1 == x0 else (0.3 if x1 > x0 else -0.3)), y0 + (-0.25 if x1 == x0 else 0.18),
                          etiqueta, fontsize=9, weight="bold", ha="center", color=AZUL)
 

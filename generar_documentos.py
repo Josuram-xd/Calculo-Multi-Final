@@ -17,7 +17,7 @@ from estilo_word import acabado, referencia
 
 from regresion_hooke import (CORTOS, OBJETOS, OTRAS_RECTAS, RES_GRAMERA, RES_REGLA, X, Y, ajustar, banda, calidad,
                              error_S, incertidumbre_instrumental, intervalos, jackknife, montecarlo, polinomios,
-                             residuos, sumas)
+                             sumas)
 
 RAIZ = Path(__file__).parent
 L0 = 3.3  # longitud del resorte sin carga (cm)

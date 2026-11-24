@@ -212,7 +212,7 @@ def puntos(ax, etiquetas=True):
 
 def graficas(a, b):
     FIG.mkdir(exist_ok=True)
-    x, y = np.array(X, float), np.array(Y)
+    x = np.array(X, float)
     xs = np.linspace(-10, 430, 50)
     s_min = error_S(a, b, X, Y)
 
@@ -645,7 +645,7 @@ def main():
     print(f"           b = {b:.3f} ± {ic['t'] * ic['se_b']:.3f}  ->  [{ic['b_lo']:.3f}, {ic['b_hi']:.3f}] cm (contiene 0)")
     print(f"           k = {ic['k']:.1f} N/m  ->  k_min = {ic['k_lo']:.1f}, k_max = {ic['k_hi']:.1f} N/m")
     ks_jk = jackknife(X, Y)
-    print(f"    Quitando un dato a la vez: k entre {min(ks_jk):.1f} y {max(ks_jk):.1f} N/m")
+    print(f"    Sensibilidad (ajuste sin cada medicion): k entre {min(ks_jk):.1f} y {max(ks_jk):.1f} N/m")
 
     polis, origen = polinomios()
     print("\n[2] Grado   S      RMSE   R2      R2aj    AIC     RMSE_cv  t_lider/t_crit   F/F_crit")
