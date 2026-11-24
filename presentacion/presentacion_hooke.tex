@@ -14,6 +14,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs,array,multicol,tabularx}
 \usepackage{tcolorbox}
+\tcbuselibrary{raster}
 \usepackage{listings}
 \usepackage{appendixnumberbeamer}
 \usepackage{colortbl}
@@ -59,7 +60,7 @@
   left=6pt,right=6pt,top=3pt,bottom=3pt,fontupper=\small,before upper=\raggedright,#1}
 \newcommand{\dato}[2]{\begin{tabular}{@{}c@{}}{\Large\bfseries\color{azul}#1}\\[-1pt]{\scriptsize\color{gris}#2}\end{tabular}}
 \newcommand{\recom}{\tcbox[on line,colback=naranja,colframe=naranja,coltext=white,boxrule=0pt,arc=1.5mm,
-  left=3pt,right=3pt,top=1pt,bottom=1pt]{\scriptsize\bfseries Recomendación}}
+  left=3pt,right=3pt,top=1pt,bottom=1pt]{\scriptsize\bfseries Análisis adicional}}
 \newcommand{\origen}[1]{\par\vspace{2pt}{\scriptsize\color{gris}#1\par}}
 \newcommand{\foto}[2]{\begin{minipage}[t]{0.155\textwidth}\centering
   \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{#1}\\[1pt]{\scriptsize #2}\end{minipage}}
@@ -1019,12 +1020,25 @@ FIN ALGORITMO
   \end{itemize}
 \end{frame}
 
-{\setbeamercolor{background canvas}{bg=azul}
+{\setbeamertemplate{footline}{}
 \begin{frame}[plain]
-  \centering
-  {\color{white}\Huge\bfseries Gracias}\\[1em]
-  {\color{naranja}\Large ¿Preguntas?}\\[2em]
-  {\color{white!80}\small $y=0{,}0151\,x-0{,}070$ \quad·\quad $k=\vkVal\pm\vuK$ N/m \quad·\quad $R^2=0{,}947$}
+  \begin{columns}[c]
+    \column{0.3\textwidth}
+    \centering\includegraphics[height=0.86\textheight]{img4.jpg}
+    \column{0.66\textwidth}
+    {\color{azul}\fontsize{40}{44}\selectfont\bfseries Gracias\par}
+    \vspace{0.3em}{\color{naranja}\rule{0.85\linewidth}{2pt}}\par\vspace{0.4em}
+    {\color{naranja}\Large\bfseries ¿Preguntas?\par}
+    \vspace{1.2em}
+    \begin{resultado}[width=0.85\linewidth]
+      \renewcommand{\arraystretch}{1.35}
+      \begin{tabular}{@{}l@{\hspace{1.2em}}l@{}}
+        {\small\color{gris}Recta} & {\bfseries\color{azul}$y=0{,}0151\,x-0{,}070$} \\
+        {\small\color{gris}Constante del resorte} & {\bfseries\color{azul}$k=\vkVal\pm\vuK$ N/m} \\
+        {\small\color{gris}Ajuste} & {\bfseries\color{azul}$R^2=0{,}947$}
+      \end{tabular}
+    \end{resultado}
+  \end{columns}
 \end{frame}}
 
 % =====================================================================
