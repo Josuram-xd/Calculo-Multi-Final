@@ -1,3 +1,12 @@
 __pycache__/
 *.md.tmp
 ~$*
+presentacion/*.aux
+presentacion/*.log
+presentacion/*.nav
+presentacion/*.out
+presentacion/*.snm
+presentacion/*.toc
+presentacion/*.vrb
+presentacion/*.fls
+presentacion/*.fdb_latexmk

@@ -1,0 +1,7 @@
+% Guion para quien expone: cada diapositiva con sus notas debajo.
+\PassOptionsToClass{handout}{beamer}
+\let\origdocumentclass\documentclass
+\renewcommand{\documentclass}[2][]{\origdocumentclass[#1]{#2}
+  \usepackage{pgfpages}\setbeameroption{show notes on second screen=bottom}
+  \setbeamertemplate{note page}{\vspace{1em}\small\insertnote}}
+\input{presentacion_hooke.tex}

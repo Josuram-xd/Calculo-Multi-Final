@@ -10,6 +10,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Polygon
 
+from estilo import (AZUL, AZUL_CLARO, GRIS, NARANJA, NARANJA_CLARO, ROJO, ROJO_CLARO, TEXTO, VERDE,
+                    VERDE_CLARO)
+
 DIR = Path(__file__).parent / "diagramas"
 W, H = 5.2, 0.9  # ancho y alto de cada caja
 
@@ -20,35 +23,35 @@ class Diagrama:
         self.ax.set_xlim(-ancho / 2, ancho / 2)
         self.ax.set_ylim(-alto + 0.3, 1)
         self.ax.axis("off")
-        self.ax.set_title(titulo, fontsize=12, weight="bold")
+        self.ax.set_title(titulo, fontsize=13, weight="bold", color=AZUL)
 
     def nodo(self, tipo, x, y, texto, w=W, h=H):
         """tipo: 'fin' (inicio/fin), 'proc' (proceso), 'io' (entrada/salida), 'dec' (decision)."""
         ax = self.ax
         if tipo == "fin":
             p = FancyBboxPatch((x - w / 4, y - h / 2), w / 2, h, boxstyle="round,pad=0,rounding_size=0.45",
-                               fc="#d9ead3", ec="k")
+                               fc=VERDE_CLARO, ec=VERDE, lw=1.4)
         elif tipo == "proc":
             p = Polygon([(x - w / 2, y - h / 2), (x + w / 2, y - h / 2), (x + w / 2, y + h / 2), (x - w / 2, y + h / 2)],
-                        fc="#cfe2f3", ec="k")
+                        fc=AZUL_CLARO, ec=AZUL, lw=1.4)
         elif tipo == "io":
             s = 0.3
             p = Polygon([(x - w / 2 + s, y + h / 2), (x + w / 2 + s, y + h / 2), (x + w / 2 - s, y - h / 2),
-                         (x - w / 2 - s, y - h / 2)], fc="#fff2cc", ec="k")
+                         (x - w / 2 - s, y - h / 2)], fc=NARANJA_CLARO, ec=NARANJA, lw=1.4)
         else:  # decision
-            p = Polygon([(x, y + h * 0.8), (x + w / 2, y), (x, y - h * 0.8), (x - w / 2, y)], fc="#f4cccc", ec="k")
+            p = Polygon([(x, y + h * 0.8), (x + w / 2, y), (x, y - h * 0.8), (x - w / 2, y)], fc=ROJO_CLARO, ec=ROJO, lw=1.4)
         ax.add_patch(p)
-        ax.text(x, y, texto, ha="center", va="center", fontsize=8.5)
+        ax.text(x, y, texto, ha="center", va="center", fontsize=9, color=TEXTO)
 
     def flecha(self, puntos, etiqueta=None):
         """Linea quebrada por la lista de puntos, con punta de flecha al final."""
         xs, ys = zip(*puntos)
-        self.ax.plot(xs[:-1], ys[:-1], "k", lw=1)
-        self.ax.annotate("", xy=puntos[-1], xytext=puntos[-2], arrowprops=dict(arrowstyle="->", lw=1))
+        self.ax.plot(xs[:-1], ys[:-1], color=GRIS, lw=1.2)
+        self.ax.annotate("", xy=puntos[-1], xytext=puntos[-2], arrowprops=dict(arrowstyle="-|>", lw=1.2, color=GRIS))
         if etiqueta:
-            (x0, y0), (x1, y1) = puntos[0], puntos[1]
+            (x0, y0), (x1, _) = puntos[0], puntos[1]
             self.ax.text(x0 + (0.25 if x1 == x0 else (0.3 if x1 > x0 else -0.3)), y0 + (-0.25 if x1 == x0 else 0.18),
-                         etiqueta, fontsize=8.5, weight="bold", ha="center")
+                         etiqueta, fontsize=9, weight="bold", ha="center", color=AZUL)
 
     def columna(self, nodos, x=0, y0=0, paso=1.5):
         """Coloca nodos en vertical unidos por flechas. Devuelve la y de cada uno."""
@@ -65,7 +68,7 @@ class Diagrama:
 
     def guardar(self, nombre):
         DIR.mkdir(exist_ok=True)
-        self.fig.savefig(DIR / nombre, dpi=150, bbox_inches="tight")
+        self.fig.savefig(DIR / nombre, dpi=200, bbox_inches="tight", facecolor="white")
         plt.close(self.fig)
 
 

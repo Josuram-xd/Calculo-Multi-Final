@@ -1,0 +1,1167 @@
+% Presentacion del proyecto final de Calculo Multivariable: Ley de Hooke.
+% Compilar desde la carpeta presentacion/ (despues de python regresion_hooke.py):
+%   latexmk -pdf presentacion_hooke.tex          (diapositivas)
+%   latexmk -pdf presentacion_hooke_notas.tex    (guion con notas para quien expone)
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usetheme[progressbar=frametitle,numbering=fraction,sectionpage=none,block=fill]{metropolis}
+\usepackage[spanish,es-nodecimaldot,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[sfdefault,lining]{FiraSans}
+\usepackage[scale=0.85]{FiraMono}
+\usepackage[italic]{mathastext}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,array,multicol,tabularx}
+\usepackage{tcolorbox}
+\tcbuselibrary{raster}
+\usepackage{listings}
+\usepackage{appendixnumberbeamer}
+\usepackage{colortbl}
+
+\graphicspath{{../figuras/}{../fotos/}{../diagramas/}}
+\input{valores.tex}
+\DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
+
+% ---------- Colores (los mismos de las graficas) ----------
+\definecolor{azul}{HTML}{1F4E79}
+\definecolor{azulclaro}{HTML}{E8EEF5}
+\definecolor{naranja}{HTML}{E07A1F}
+\definecolor{verde}{HTML}{2E8B57}
+\definecolor{rojo}{HTML}{C0392B}
+\definecolor{gris}{HTML}{6B7280}
+\definecolor{fondo}{HTML}{FAFAF7}
+
+\setbeamercolor{frametitle}{bg=azul,fg=white}
+\setbeamercolor{progress bar}{fg=naranja,bg=azul!40}
+\setbeamercolor{title separator}{fg=naranja}
+\setbeamercolor{background canvas}{bg=fondo}
+\setbeamercolor{normal text}{fg=black!85}
+\setbeamercolor{alerted text}{fg=naranja}
+\setbeamercolor{example text}{fg=verde}
+\setbeamercolor{block title}{bg=azul!15,fg=azul}
+\setbeamercolor{block body}{bg=azul!5}
+\setbeamercolor{block title alerted}{bg=naranja!20,fg=naranja!70!black}
+\setbeamercolor{block body alerted}{bg=naranja!6}
+\setbeamercolor{block title example}{bg=verde!18,fg=verde!70!black}
+\setbeamercolor{block body example}{bg=verde!5}
+\setbeamercolor{itemize item}{fg=naranja}
+\setbeamercolor{enumerate item}{fg=azul}
+\setbeamertemplate{itemize item}{\small$\blacktriangleright$}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{caption}{size=\scriptsize}
+\setbeamertemplate{caption}{\centering\insertcaption}
+
+
+% ---------- Cajas y atajos ----------
+\newtcolorbox{resultado}[1][]{colback=azulclaro,colframe=azul,boxrule=0.6pt,arc=2mm,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fontupper=\normalsize,before upper=\raggedright,#1}
+\newtcolorbox{nota}[1][]{colback=naranja!8,colframe=naranja,boxrule=0.6pt,arc=2mm,
+  left=6pt,right=6pt,top=3pt,bottom=3pt,fontupper=\small,before upper=\raggedright,#1}
+\newcommand{\dato}[2]{\begin{tabular}{@{}c@{}}{\Large\bfseries\color{azul}#1}\\[-1pt]{\scriptsize\color{gris}#2}\end{tabular}}
+\newcommand{\recom}{\tcbox[on line,colback=naranja,colframe=naranja,coltext=white,boxrule=0pt,arc=1.5mm,
+  left=3pt,right=3pt,top=1pt,bottom=1pt]{\scriptsize\bfseries Análisis adicional}}
+\newcommand{\origen}[1]{\par\vspace{2pt}{\scriptsize\color{gris}#1\par}}
+\newcommand{\foto}[2]{\begin{minipage}[t]{0.155\textwidth}\centering
+  \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{#1}\\[1pt]{\scriptsize #2}\end{minipage}}
+
+\lstset{basicstyle=\ttfamily\fontsize{6.6}{7.4}\selectfont,keywordstyle=\color{azul}\bfseries,commentstyle=\color{gris}\itshape,
+  morekeywords={ALGORITMO,LEER,PARA,CADA,HACER,FIN,SI,ENTONCES,SINO,ESCRIBIR,TERMINAR,DIBUJAR,Y},
+  morecomment=[l]{//},columns=fullflexible,keepspaces=true,backgroundcolor=\color{white},
+  frame=single,rulecolor=\color{azul!30},xleftmargin=4pt,framexleftmargin=4pt,literate={<-}{{$\leftarrow$}}1}
+
+\title{Regresión lineal y optimización mediante funciones de varias variables}
+\subtitle{Proyecto final de Cálculo Multivariable: Ley de Hooke}
+\author{[Nombres de los integrantes del grupo]}
+\institute{Universidad Cooperativa de Colombia, San Juan de Pasto\\Docente: M.Sc. Alejandro Molina}
+\date{2026}
+
+\begin{document}
+
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \begin{columns}[c]
+    \column{0.66\textwidth}
+    {\color{azul}\LARGE\bfseries Regresión lineal y optimización mediante funciones de varias variables\par}
+    \vspace{0.6em}
+    {\large Proyecto final de Cálculo Multivariable: Ley de Hooke\par}
+    \vspace{0.4em}{\color{naranja}\rule{0.9\linewidth}{1.5pt}}\par\vspace{0.6em}
+    {\small [Nombres de los integrantes del grupo]\par\vspace{0.5em}
+    Universidad Cooperativa de Colombia, San Juan de Pasto\\Docente: M.Sc. Alejandro Molina\\2026\par}
+    \column{0.3\textwidth}
+    \centering\includegraphics[height=0.86\textheight]{img4.jpg}
+  \end{columns}
+\end{frame}}
+
+% Las explicaciones largas van en \note{...}: no aparecen en las diapositivas,
+% solo en presentacion_hooke_notas.pdf (guion para quien expone).
+
+\begin{frame}{Contenido}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{enumerate}\small\itemsep3pt
+      \item Problema
+      \item Experimento y datos
+      \item Modelo
+      \item Procedimiento analítico
+      \item Interpretación geométrica
+      \item Verificación computacional
+    \end{enumerate}
+    \column{0.48\textwidth}
+    \begin{enumerate}\small\itemsep3pt\setcounter{enumi}{6}
+      \item Residuos y calidad
+      \item \alert{Incertidumbre y otros modelos}
+      \item Sensibilidad al dato del parlante
+      \item Constante del resorte
+      \item Conclusiones
+    \end{enumerate}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Problema}
+
+\begin{frame}{1. El problema}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+    \textbf{Ley de Hooke}
+    \[ F=ky,\quad F=mg \;\Rightarrow\; y=\frac{g}{k}\,m \]
+    \textbf{Modelo:} \ $y=ax+b$, \quad $a=g/k$, \ $b\approx0$
+    \column{0.46\textwidth}
+    \begin{resultado}
+      Mejor recta $=$ mínimo de
+      \[ S(a,b)=\sum_{i=1}^{n}\bigl(y_i-a x_i-b\bigr)^2 \]
+    \end{resultado}
+  \end{columns}
+  \note{Al colgar una masa de un resorte, este se estira. La Ley de Hooke dice que, dentro del límite elástico,
+  la fuerza es proporcional al estiramiento. Como F = mg, el estiramiento es proporcional a la masa: una recta
+  con pendiente g/k. Los datos reales no caen exactamente en una recta, así que se define el error cuadrático
+  total S(a,b), una función de dos variables. Buscar la mejor recta es buscar su mínimo.}
+\end{frame}
+
+\begin{frame}{1.1 Pregunta central}
+  \begin{resultado}[fontupper=\large\itshape]
+    ¿Cómo usar el Cálculo Multivariable para hallar y analizar el modelo lineal que mejor representa unos datos?
+  \end{resultado}
+  \vspace{0.8em}
+  \begin{columns}[T]
+    \column{0.32\textwidth}
+    \begin{block}{Analítica}
+      Derivadas, gradiente, Hessiano
+    \end{block}
+    \column{0.32\textwidth}
+    \begin{block}{Geométrica}
+      Superficie, trazas, curvas de nivel
+    \end{block}
+    \column{0.32\textwidth}
+    \begin{block}{Computacional}
+      Código propio vs.\ biblioteca
+    \end{block}
+  \end{columns}
+  \note{Objetivo general: aplicar conceptos de Cálculo Multivariable para formular, resolver y analizar un
+  problema de regresión lineal minimizando una función de error de dos variables, y comparar el cálculo a mano con
+  el computacional.
+  Objetivos específicos: medir el estiramiento con distintas masas; formular S(a,b); calcular sus derivadas
+  parciales; plantear grad S = 0; resolver el sistema; demostrar con el Hessiano que es un mínimo; programar y
+  comparar con una biblioteca; graficar la minimización; analizar la calidad, la incertidumbre y las limitaciones.}
+\end{frame}
+
+% =====================================================================
+\section{Experimento y datos}
+
+\begin{frame}{2.1 Montaje experimental}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+    \begin{itemize}
+      \item Resorte en soporte fijo, regla al lado
+      \item \textbf{Regla:} 0,1 cm \quad \textbf{Gramera:} 1 g
+      \item $L=\text{lectura total}-\text{largo del objeto}$
+      \item $y=L-L_0$, \quad $L_0=3{,}3$ cm
+    \end{itemize}
+    \column{0.36\textwidth}
+    \centering\includegraphics[height=0.72\textheight]{img4.jpg}
+  \end{columns}
+  \note{El soporte y la regla no se movieron; solo cambió el objeto colgado. Para cada objeto se midió su masa,
+  su largo y la lectura total del conjunto resorte más objeto. El resorte tiene masa propia de 30 g, que no se cuenta
+  como carga: el primer dato es x = 0 g, y = 0 cm.}
+\end{frame}
+
+\begin{frame}{2.2 Tabla de datos}
+  \centering\small
+  \begin{tabular}{rlrrrrr}
+    \toprule
+    N.º & Objeto & $x$ (g) & Largo (cm) & Lectura (cm) & $L$ (cm) & $y$ (cm) \\
+    \midrule
+    1  & Sin carga       & 0   & ---  & 3,3  & 3,3 & 0,0 \\
+    2  & Llave grande    & 15  & 7,5  & 10,9 & 3,4 & 0,1 \\
+    3  & Tornillo grande & 70  & 7,1  & 10,8 & 3,7 & 0,4 \\
+    4  & Taza plástica   & 92  & 9,5  & 14,4 & 4,9 & 1,6 \\
+    5  & Rollo de cinta  & 150 & 11,0 & 16,2 & 5,2 & 1,9 \\
+    6  & Herradura       & 185 & 10,9 & 16,7 & 5,8 & 2,5 \\
+    7  & Teléfono LG     & 190 & 15,8 & 22,0 & 6,2 & 2,9 \\
+    \rowcolor{naranja!12}
+    8  & Parlante        & 220 & 13,1 & 20,6 & 7,5 & 4,2 \\
+    9  & Libro pequeño   & 300 & 20,0 & 28,1 & 8,1 & 4,8 \\
+    10 & Alicate         & 410 & 22,4 & 31,3 & 8,9 & 5,6 \\
+    \bottomrule
+  \end{tabular}
+  \note{x: masa colgada en gramos (variable independiente). y: estiramiento en centímetros (variable dependiente).
+  El parlante está resaltado porque es el dato que más se aparta de la recta.}
+\end{frame}
+
+\begin{frame}{2.3 Fotografías de las mediciones}
+  \centering
+  \foto{img3.jpg}{Sin carga}\hfill
+  \foto{img5.jpg}{Tornillo}\hfill
+  \foto{img4.jpg}{Herradura}\hfill
+  \foto{img7.jpg}{Teléfono LG}\hfill
+  \foto{img2.jpg}{Parlante}\hfill
+  \foto{img6.jpg}{Alicate}
+  \note{Fotografías tomadas por el equipo durante el experimento.}
+\end{frame}
+
+\begin{frame}{2.3 Las otras cuatro cargas}
+  \centering
+  \foto{img8.jpg}{Llave}\hspace{1.5em}
+  \foto{img9.jpg}{Taza}\hspace{1.5em}
+  \foto{img10.jpg}{Cinta}\hspace{1.5em}
+  \foto{img11.jpg}{Libro}
+  \vfill
+  {\small\color{gris} Imágenes de referencia de cómo se colgó cada objeto (sin foto de la medición).\\
+  Sus medidas están en la tabla 2.2.}
+  \note{Estas cuatro imágenes representan cómo se colgó cada objeto; no son fotografías de la medición. Los valores
+  de la tabla para estas cargas sí fueron medidos por el equipo.}
+\end{frame}
+
+\begin{frame}{3. Exploración de los datos}
+  \begin{columns}[c]
+    \column{0.64\textwidth}
+    \includegraphics[width=\linewidth]{01_dispersion.png}
+    \column{0.34\textwidth}
+    \begin{resultado}[fontupper=\small]
+      Tendencia lineal, sin curvatura clara
+    \end{resultado}
+    \begin{itemize}\small
+      \item 15 g y 70 g: estiran menos de lo esperado
+      \item Parlante: por encima de la tendencia
+    \end{itemize}
+  \end{columns}
+  \note{El estiramiento crece con la masa y los puntos se agrupan alrededor de una recta. Por eso y = ax + b es
+  razonable y además es lo que predice Hooke. Dos detalles se analizan después: con cargas livianas el resorte casi
+  no se estira (posible tensión inicial) y el parlante queda por encima de la tendencia de sus vecinos.}
+\end{frame}
+
+\begin{frame}{3.1 ¿Por qué una recta?}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{block}{La física lo predice}
+      $y=\frac{g}{k}m$
+    \end{block}
+    \begin{block}{Los datos lo respaldan}
+      Sin curvatura clara
+    \end{block}
+    \column{0.49\textwidth}
+    \begin{block}{¿Por qué incluir $b$?}
+      Para comprobar que $b\approx0$
+    \end{block}
+    \begin{block}{¿Por qué al cuadrado?}
+      Sin cancelaciones y derivable
+    \end{block}
+  \end{columns}
+  \note{Incluir b permite comprobar Hooke (si se cumple, b es casi cero) y hace de S una función de dos variables,
+  con gradiente y Hessiano. Elevar el error al cuadrado evita que los signos se cancelen, permite derivar y castiga
+  más los errores grandes. La sección 9 confirma con polinomios que no hay curvatura significativa.}
+\end{frame}
+
+% =====================================================================
+\section{Modelo}
+
+\begin{frame}{4. Construcción del modelo}
+  \[ e_i=y_i-(a x_i+b) \qquad\Longrightarrow\qquad S(a,b)=\sum_{i=1}^{n} e_i^2 \]
+  \vspace{0.3em}
+  \begin{resultado}
+    \centering Con los 10 datos:\\[3pt]
+    $S(a,b)=412\,914\,a^2+3264\,ab+10\,b^2-12\,270{,}4\,a-48\,b+93{,}04$
+  \end{resultado}
+  \vspace{0.3em}
+  \centering{\small Las variables de $S$ son $a$ y $b$; los datos son fijos.}
+  \note{Para cada masa el modelo predice y = a x + b; la diferencia con lo medido es el residuo. Como unos residuos
+  son positivos y otros negativos, se suman sus cuadrados. Al reemplazar los diez datos y desarrollar, S queda como
+  un polinomio de segundo grado en a y b.}
+\end{frame}
+
+\begin{frame}{4.1 Notación estadística}
+  \[ y=\beta_0+\beta_1\,x+\varepsilon \]
+  \centering\small
+  \begin{tabular}{cll}
+    \toprule
+    Símbolo & Significado & En este proyecto \\
+    \midrule
+    $y$ & variable dependiente & estiramiento del resorte (cm) \\
+    $x$ & variable independiente & masa colgada (g) \\
+    $\beta_0$ & intercepto & $b^*=-0{,}070$ cm \\
+    $\beta_1$ & pendiente & $a^*=0{,}0151$ cm/g \\
+    $\varepsilon$ & error aleatorio & se estima con los residuos $e_i$ \\
+    \bottomrule
+  \end{tabular}
+  \origen{Forma estándar de la regresión lineal simple en estadística. Es el mismo modelo $y=ax+b$: $\beta_0=b$, $\beta_1=a$.}
+  \note{La notación y = ax + b es cómoda para derivar; en estadística el mismo modelo se escribe con betas. Epsilon es
+  el error aleatorio real, que no se puede observar; los residuos e\_i = y\_i - (a x\_i + b) son su estimación con los
+  10 datos.}
+\end{frame}
+
+% =====================================================================
+\section{Procedimiento analítico}
+
+\begin{frame}{5.1 Derivadas parciales}
+  \begin{align*}
+    \frac{\partial S}{\partial a} &= -2\sum_{i=1}^{n} x_i\bigl(y_i-a x_i-b\bigr)\\[6pt]
+    \frac{\partial S}{\partial b} &= -2\sum_{i=1}^{n} \bigl(y_i-a x_i-b\bigr)
+  \end{align*}
+  \note{Se obtienen con la regla de la cadena: la derivada de (y - ax - b) al cuadrado respecto de a es
+  2(y - ax - b)(-x), y respecto de b es 2(y - ax - b)(-1). Cada dato aporta un término; la derivada respecto de a pesa
+  más los datos con x grande.}
+\end{frame}
+
+\begin{frame}{5.1.1 El gradiente}
+  \[ \nabla S=\left(\frac{\partial S}{\partial a},\ \frac{\partial S}{\partial b}\right) \]
+  \begin{columns}[c]
+    \column{0.52\textwidth}
+    En la recta A $(a=0,\ b=0)$:
+    \[ \nabla S=(-12\,270{,}4;\ -48) \]
+    \column{0.44\textwidth}
+    \begin{resultado}[fontupper=\small]
+      Ambos negativos: el error baja si $a$ y $b$ aumentan
+    \end{resultado}
+  \end{columns}
+  \note{Con las sumas de los datos: dS/da = -2 Σxy + 2a Σx² + 2b Σx y dS/db = -2 Σy + 2a Σx + 2nb. Evaluadas en
+  a = 0, b = 0 dan -2(6135,2) = -12 270,4 y -2(24) = -48. En esa recta S = 93,04.}
+\end{frame}
+
+\begin{frame}{5.1.2 Una suma de aportes da un solo valor}
+  \centering
+  \includegraphics[width=0.97\linewidth]{09_aportes_gradiente.png}
+  \note{Cada barra es el aporte de un dato a la derivada respecto de a. En la recta A todos son negativos y la suma no
+  se cancela. En la recta óptima hay aportes positivos y negativos que se equilibran: la derivada es cero.}
+\end{frame}
+
+\begin{frame}{5.2 Condición de punto crítico}
+  \centering
+  $\nabla S(a,b)=(0,0)$ \ $\Longrightarrow$ \ \textbf{ecuaciones normales}
+  \vspace{0.6em}
+  \begin{resultado}
+    \[ \begin{cases} a\sum x_i^2 + b\sum x_i = \sum x_iy_i\\[3pt] a\sum x_i + n\,b = \sum y_i \end{cases} \]
+  \end{resultado}
+  \note{Se iguala el gradiente a cero, se divide entre -2 y se separan las sumas. Queda un sistema lineal de dos
+  ecuaciones con dos incógnitas, a y b.}
+\end{frame}
+
+\begin{frame}{5.3 Determinación de los parámetros}
+  \[ \begin{cases} 412\,914\,a+1632\,b=6135{,}2\\ 1632\,a+10\,b=24 \end{cases} \]
+  \[ a^*=\frac{22\,184}{1\,465\,716}=0{,}0151353\ \text{cm/g}\qquad b^*=-0{,}0700810\ \text{cm} \]
+  \begin{resultado}
+    \centering $y=0{,}0151\,x-0{,}070$ \qquad $S_{\min}=1{,}8639\ \text{cm}^2$
+  \end{resultado}
+  \origen{$a^*$ y $b^*$: regla de Cramer sobre las ecuaciones normales. Sumas de la tabla 2.2: $\sum x_i=1632$,
+  $\sum y_i=24$, $\sum x_i^2=412\,914$, $\sum x_iy_i=6135{,}2$.}
+  \note{Sumas: n = 10, Σx = 1632, Σy = 24, Σx² = 412 914, Σxy = 6135,2.
+  a* = (n Σxy - Σx Σy) / (n Σx² - (Σx)²) = (61 352 - 39 168) / (4 129 140 - 2 663 424).
+  b* = (Σy - a* Σx) / n = (24 - 24,7008096) / 10. La x va en gramos y la y en centímetros.}
+\end{frame}
+
+\begin{frame}{5.4 Análisis mediante el Hessiano}
+  \[ H=\begin{pmatrix}2\sum x_i^2 & 2\sum x_i\\ 2\sum x_i & 2n\end{pmatrix}
+      =\begin{pmatrix}825\,828 & 3264\\ 3264 & 20\end{pmatrix} \]
+  \[ \det H=5\,862\,864>0,\qquad S_{aa}>0 \]
+  \begin{resultado}
+    \centering Mínimo \textbf{único y global} ($H$ constante, $S$ convexa)
+  \end{resultado}
+  \origen{$H$: segundas derivadas de $S$ (derivando otra vez las de la sección 5.1). $\det H=825\,828\cdot20-3264^2$.}
+  \note{Las segundas derivadas son constantes. Por el criterio de la segunda derivada, det H > 0 y S\_aa > 0 implican
+  mínimo. Como H es igual en todos los puntos y es definida positiva, S es convexa y el mínimo es único y global. En
+  general det H = 4 n Σ(x - x media)², que es positivo siempre que haya al menos dos masas distintas.}
+\end{frame}
+
+\begin{frame}{5.5 Mínimo, máximo o silla}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+    \centering
+    $D=\det H=S_{aa}S_{bb}-S_{ab}^2$\\[6pt]
+    \begin{tabular}{ll}
+      \toprule
+      Condición & Tipo \\
+      \midrule
+      $D>0$, $S_{aa}>0$ & \textcolor{verde}{\textbf{mínimo}} \\
+      $D>0$, $S_{aa}<0$ & máximo \\
+      $D<0$ & silla \\
+      $D=0$ & no concluye \\
+      \bottomrule
+    \end{tabular}
+    \column{0.46\textwidth}
+    \begin{resultado}[fontupper=\small]
+      Aquí $D=4n\sum(x_i-\bar x)^2>0$:\\ nunca puede salir silla
+    \end{resultado}
+  \end{columns}
+  \note{El gradiente apunta hacia donde S crece más rápido; menos el gradiente, hacia donde baja más rápido. En el
+  mínimo vale cero. El determinante es el producto de los valores propios de H: si es negativo, uno es positivo y
+  otro negativo, y S sube en una dirección y baja en otra (silla de montar).}
+\end{frame}
+
+% =====================================================================
+\section{Interpretación geométrica}
+
+\begin{frame}{6.1 Superficie de error}
+  \begin{columns}[c]
+    \column{0.58\textwidth}
+    \centering\includegraphics[height=0.8\textheight]{03_superficie.png}
+    \column{0.4\textwidth}
+    \textbf{Paraboloide elíptico}\\ (un valle)
+    \begin{resultado}[fontupper=\small]
+      Punto más bajo:\\ $(0{,}0151;\,-0{,}070)$, \ $S=1{,}86$
+    \end{resultado}
+  \end{columns}
+  \note{Se graficó para a entre 0,005 y 0,025 y b entre -2 y 2, un intervalo que contiene al mínimo. En cualquier
+  dirección en que uno se aleje del punto más bajo, el error sube.}
+\end{frame}
+
+\begin{frame}{6.2 Trazas y secciones transversales}
+  \centering
+  \includegraphics[width=0.95\linewidth]{04_trazas.png}\\[0.3em]
+  {\small Todas son parábolas: un solo mínimo, y $a$ y $b$ no se pueden optimizar por separado}
+  \note{Con b fijo, cada S(a, b0) es una parábola; con b = 0 el vértice está en a = 0,01486. Con a = 0,
+  S(0, b) = 10b² - 48b + 93,04, con vértice en b = 2,4 (el promedio de y) y error 35,44. El vértice de cada sección se
+  desplaza al cambiar el valor fijo: el mejor a depende del b escogido. Por eso hace falta resolver el sistema. Solo la
+  sección con b = b* baja hasta el mínimo global.}
+\end{frame}
+
+\begin{frame}{6.3 Curvas de nivel}
+  \begin{columns}[c]
+    \column{0.62\textwidth}
+    \includegraphics[width=\linewidth]{05_curvas_nivel.png}
+    \column{0.36\textwidth}
+    \begin{itemize}
+      \item Elipses con centro en $(a^*,b^*)$
+      \item Inclinadas: $a$ y $b$ se compensan
+    \end{itemize}
+  \end{columns}
+  \note{Cada curva reúne las parejas (a, b) con el mismo error; cuanto más pequeña la elipse, menor el error. La
+  inclinación hacia abajo a la derecha viene del término cruzado 3264ab, es decir, de que S\_ab no es cero.}
+\end{frame}
+
+\begin{frame}{6.3.1 El gradiente sobre el mapa}
+  \centering
+  \includegraphics[width=0.95\linewidth]{10_gradiente_mapa.png}
+  \note{Las curvas de nivel son un mapa topográfico del valle: cada línea es una altura, es decir, un valor de S. La
+  flecha roja (menos el gradiente) señala hacia dónde baja el error desde la recta A.}
+\end{frame}
+
+\begin{frame}{6.3.2 El gradiente y el tamaño del paso}
+  \centering
+  \includegraphics[width=0.9\linewidth]{11_gradiente_paso.png}\\[0.2em]
+  $a_{\text{nuevo}}=a-\eta\,\dfrac{\partial S}{\partial a},\qquad b_{\text{nuevo}}=b-\eta\,\dfrac{\partial S}{\partial b}$
+  \note{El gradiente da la dirección, pero el tamaño del paso eta se escoge. Si es muy pequeño se avanza poco; si es
+  muy grande, se pasa al otro lado del valle y el error vuelve a subir.}
+\end{frame}
+
+\begin{frame}{6.4 Síntesis geométrica}
+  \begin{columns}[T]
+    \column{0.32\textwidth}
+    \begin{block}{Superficie}
+      Un único punto más bajo
+    \end{block}
+    \column{0.32\textwidth}
+    \begin{block}{Secciones}
+      Siempre parábolas hacia él
+    \end{block}
+    \column{0.32\textwidth}
+    \begin{block}{Curvas de nivel}
+      Centro de las elipses
+    \end{block}
+  \end{columns}
+  \vspace{1em}
+  \begin{resultado}
+    \centering Las tres señalan el mismo punto que $\nabla S=0$
+  \end{resultado}
+\end{frame}
+
+% =====================================================================
+\section{Verificación computacional}
+
+\begin{frame}{7.1 Programa en Python}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+    \texttt{regresion\_hooke.py}
+    \begin{enumerate}\small
+      \item Sumas y fórmulas propias
+      \item $S$, RMSE y $R^2$
+      \item Hessiano (y diferencias finitas)
+      \item Gráficas
+      \item Al final: \texttt{numpy.polyfit}
+    \end{enumerate}
+    \column{0.44\textwidth}
+    \begin{block}{Nuevo}
+      \small
+      \begin{itemize}
+        \item Intervalos de confianza
+        \item Sensibilidad de $k$
+        \item Error de los instrumentos
+        \item Polinomios
+      \end{itemize}
+    \end{block}
+  \end{columns}
+  \note{El programa obtiene a* y b* con las fórmulas de la sección 5, sin usar ninguna función de regresión. Verifica
+  el Hessiano: determinante positivo, valores propios positivos y coincidencia con el Hessiano calculado por
+  diferencias finitas. Solo al final compara con numpy.polyfit.}
+\end{frame}
+
+\begin{frame}[fragile]{7.2 Pseudocódigo}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+\begin{lstlisting}
+ALGORITMO AjusteMinimosCuadrados
+  LEER los n pares (x_i, y_i)
+  // 1. Sumas (Diagrama 2)
+  n <- 0; Sx <- 0; Sy <- 0
+  Sxx <- 0; Sxy <- 0; Syy <- 0
+  PARA CADA par (x_i, y_i) HACER
+    n <- n + 1
+    Sx <- Sx + x_i;      Sy <- Sy + y_i
+    Sxx <- Sxx + x_i*x_i
+    Sxy <- Sxy + x_i*y_i
+    Syy <- Syy + y_i*y_i
+  FIN PARA
+  // 2. Punto critico: grad S = 0
+  D <- n*Sxx - Sx*Sx
+  SI D = 0 ENTONCES
+    ESCRIBIR "No hay solucion unica"
+    TERMINAR
+  FIN SI
+  a <- (n*Sxy - Sx*Sy) / D
+  b <- (Sy - a*Sx) / n
+\end{lstlisting}
+    \column{0.49\textwidth}
+\begin{lstlisting}
+  // 3. Error minimo y calidad (Diagrama 3)
+  S <- 0; ST <- 0; ym <- Sy / n
+  PARA CADA par (x_i, y_i) HACER
+    e_i <- y_i - (a*x_i + b)
+    S  <- S + e_i*e_i
+    ST <- ST + (y_i - ym)^2
+  FIN PARA
+  RMSE <- raiz(S / n);  R2 <- 1 - S/ST
+  // 4. Hessiano
+  H <- [[2*Sxx, 2*Sx], [2*Sx, 2*n]]
+  detH <- 4*D
+  SI 2*Sxx > 0 Y detH > 0 ENTONCES
+    ESCRIBIR "El punto critico es un minimo"
+  FIN SI
+  // 5. Verificacion y salida
+  (a_lib, b_lib) <- numpy.polyfit
+  ESCRIBIR a, b, S, RMSE, R2, H, detH
+  DIBUJAR las graficas
+FIN ALGORITMO
+\end{lstlisting}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{7.3 Diagrama de flujo general}
+  \begin{columns}[c]
+    \column{0.4\textwidth}
+    \centering\includegraphics[height=0.82\textheight]{diagrama_1_general.png}
+    \column{0.56\textwidth}
+    \begin{enumerate}\small
+      \item Sumas
+      \item ¿$D=0$? $\Rightarrow$ sin solución
+      \item $a^*$ y $b^*$
+      \item $S$, RMSE, $R^2$
+      \item Hessiano
+      \item Comparar y graficar
+    \end{enumerate}
+  \end{columns}
+  \note{D = n Σx² - (Σx)². Si vale cero, todas las masas son iguales y el sistema no tiene solución única.}
+\end{frame}
+
+\begin{frame}{7.4 Código y modelo}
+  \centering\small
+  \begin{tabular}{ll}
+    \toprule
+    Modelo matemático & Función \\
+    \midrule
+    Sumas & \texttt{sumas} \\
+    $\nabla S=0$ & \texttt{ajustar} \\
+    $S(a,b)$ & \texttt{error\_S} \\
+    Hessiano $H$ & \texttt{hessiano} \\
+    Residuos, RMSE, $R^2$ & \texttt{residuos}, \texttt{calidad} \\
+    Intervalos de confianza & \texttt{intervalos}, \texttt{banda} \\
+    Sensibilidad de $k$ & \texttt{jackknife}, \texttt{montecarlo} \\
+    Error de los instrumentos & \texttt{incertidumbre\_instrumental} \\
+    Polinomios & \texttt{polinomios} \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{7.5 Verificación del Hessiano}
+  \[ \lambda_1\approx 825\,840{,}9\qquad \lambda_2\approx 7{,}099 \]
+  \begin{resultado}
+    \centering Ambos positivos: $H$ definida positiva
+  \end{resultado}
+  \origen{Raíces de $\lambda^2-825\,848\,\lambda+5\,862\,864=0$ (traza y determinante de $H$; Apéndice C).}
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{$\lambda_1$ grande}
+      Cambiar la pendiente: el error sube rápido
+    \end{block}
+    \column{0.48\textwidth}
+    \begin{block}{$\lambda_2$ pequeño}
+      Eje largo de las elipses
+    \end{block}
+  \end{columns}
+  \note{El programa obtuvo det H = 5 862 864 y el Hessiano por diferencias finitas coincidió con el analítico. El
+  valor propio pequeño corresponde a la dirección en que el error crece despacio.}
+\end{frame}
+
+\begin{frame}{7.6 Recta ajustada vs.\ otras rectas}
+  \begin{columns}[c]
+    \column{0.62\textwidth}
+    \includegraphics[width=\linewidth]{02_recta_ajuste.png}
+    \column{0.36\textwidth}
+    \centering\small
+    \begin{tabular}{lr}
+      \toprule
+      Recta & $S$ \\
+      \midrule
+      \textbf{Óptima} & \textbf{1,86} \\
+      Prueba 1 & 3,51 \\
+      Prueba 2 & 3,08 \\
+      Prueba 3 & 5,05 \\
+      \bottomrule
+    \end{tabular}
+    \origen{Rectas de prueba elegidas a mano;\\ $S$ calculado con la fórmula de la sección 4.}
+  \end{columns}
+  \note{Pruebas: (a, b) = (0,012; 0,3), (0,018; -0,5) y (0,0151; 0,5). Todas tienen mayor error: ninguna pareja puede
+  dar menos de 1,86 cm² porque es el mínimo global.}
+\end{frame}
+
+\begin{frame}{7.7 A mano vs.\ computador}
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    & A mano & Código propio & \texttt{polyfit} & Dif. máx. \\
+    \midrule
+    $a$ (cm/g) & 0,0151353 & 0,0151353 & 0,0151353 & $3{,}5\times10^{-8}$ \\
+    $b$ (cm) & $-0{,}0700810$ & $-0{,}0700752$ & $-0{,}0700752$ & $5{,}8\times10^{-6}$ \\
+    $S_{\min}$ (cm$^2$) & 1,8639000 & 1,8639282 & 1,8639282 & $2{,}8\times10^{-5}$ \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  \begin{resultado}
+    \centering Los tres coinciden (la diferencia es solo redondeo)
+  \end{resultado}
+  \note{A mano se usaron 7 decimales en a* y 4 en los residuos; el computador usa unas 16 cifras. La diferencia es
+  miles de veces menor que la resolución de la regla (0,1 cm).}
+\end{frame}
+
+% =====================================================================
+\section{Residuos y calidad}
+
+\begin{frame}{8. Análisis de la recta}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{block}{Más desviados}
+      Parlante $+0{,}94$ \ · \ tornillo $-0{,}59$ \ · \ alicate $-0{,}54$ cm
+    \end{block}
+    \begin{block}{Más palanca}
+      Alicate (410 g): la masa más alejada
+    \end{block}
+    \column{0.49\textwidth}
+    \begin{block}{Residuo más grande}
+      Parlante (el doble que el siguiente)
+    \end{block}
+    \begin{block}{Intercepto}
+      $b^*=-0{,}07$ cm $\approx 0$
+    \end{block}
+  \end{columns}
+  \origen{Residuo $e_i=y_i-\hat y_i$, con $\hat y_i=0{,}0151\,x_i-0{,}070$ (tabla completa en el Apéndice B).}
+  \note{La recta y = 0,0151x - 0,070 sube con los datos y deja puntos a ambos lados. El parlante se estiró más de lo
+  que predice la recta. El alicate es la masa más alejada y controla más la pendiente: en el análisis de sensibilidad
+  es la medición que más mueve k. El intercepto es menor que la resolución de la regla y su intervalo de confianza contiene
+  el cero, como predice Hooke.}
+\end{frame}
+
+\begin{frame}{8.1 Residuos}
+  \centering
+  \includegraphics[height=0.58\textheight]{06_residuos.png}
+  \begin{resultado}
+    \centering Centrados en cero, sin patrón claro: compatible con una recta
+  \end{resultado}
+  \origen{Residuo de cada objeto respecto a la recta (Apéndice B).}
+  \note{Hay 5 residuos positivos y 5 negativos que suman cero (consecuencia de dS/db = 0). Los signos se alternan sin
+  orden claro; hay un indicio leve (negativos en 70 g y 410 g, positivos entre 190 y 300 g), pero con 10 datos no se
+  puede afirmar una desviación sistemática. La dispersión no cambia con x. En el histograma, con intervalos de 0,05 cm,
+  cada residuo queda casi en su propia barra y el parlante (0,94 cm) aparece separado del resto;
+  los demás están entre -0,6 y +0,4 cm. Con cargas livianas el resorte se estira menos de lo esperado, posiblemente
+  por la tensión inicial de las espiras.}
+\end{frame}
+
+\begin{frame}{8.2 Histograma de los residuos}
+  \centering
+  \includegraphics[height=0.7\textheight]{07_histograma.png}
+  \origen{Intervalos de 0,05 cm (la mitad de la división de la regla). Con 10 datos casi cada residuo tiene su propia
+  barra; el parlante (+0,94 cm) queda separado del grupo.}
+  \note{Con intervalos más pequeños se ve dónde cae cada residuo: nueve entre -0,6 y +0,35 cm y el parlante solo, a la
+  derecha. No hay acumulación hacia un lado.}
+\end{frame}
+
+\begin{frame}{8.3 Calidad del modelo}
+  \centering
+  \begin{tabular}{cc}
+    \dato{RMSE $=0{,}43$ cm}{error típico de la recta} \qquad &
+    \qquad \dato{$R^2=0{,}947$}{variación explicada por la masa}
+  \end{tabular}
+  \vspace{1em}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Bien para}
+      Describir la tendencia y estimar $k$
+    \end{block}
+    \column{0.48\textwidth}
+    \begin{alertblock}{Limitado para}
+      Predecir cargas pequeñas (1--2 cm)
+    \end{alertblock}
+  \end{columns}
+  \origen{$\text{RMSE}=\sqrt{S/n}=\sqrt{1{,}8639/10}$. \quad $R^2=1-S/S_T=1-1{,}8639/35{,}44$, donde $S_T=\sum(y_i-\bar y)^2$.}
+  \note{RMSE = raíz(S/n) = raíz(1,8639/10) = 0,43 cm. R² = 1 - 1,8639/35,44 = 0,9474: usar la masa elimina el 94,7 \%
+  del error de la mejor recta horizontal. Un error típico de 0,43 cm es grande cuando el estiramiento es de 1 o 2 cm.}
+\end{frame}
+
+\begin{frame}{8.4 El RMSE en unidades del fenómeno \hfill\recom}
+  \centering
+  \vspace{1em}
+  \begin{tabular}{ccc}
+    \dato{\vrmseMm\ mm}{de estiramiento} \qquad &
+    \dato{$\approx$ \vrmseG\ g}{de masa equivalente} \qquad &
+    \dato{$\approx$ \vrmseN\ N}{de fuerza} \\[1.5em]
+    \dato{\vrmseRango\,\%}{del rango de $y$} \qquad &
+    \dato{\vrmseMedia\,\%}{del estiramiento medio} \qquad &
+    \dato{\vrmseRes\,$\times$}{la resolución de la regla}
+  \end{tabular}
+  \vspace{1.2em}
+  \begin{nota}
+    Pequeño para el alicate (5,6 cm), grande para el tornillo (0,4 cm)
+  \end{nota}
+  \origen{Masa: $0{,}43\ \text{cm}\div0{,}0151\ \text{cm/g}$. \ Fuerza: $0{,}029\ \text{kg}\times9{,}8\ \text{m/s}^2$. \
+  Porcentajes: sobre 5,6 cm (rango) y 2,4 cm (promedio de $y$). \ Regla: 0,1 cm.}
+  \note{Como la pendiente es 0,0151 cm/g, un error de 4,3 mm equivale a no conocer la masa con precisión mejor que unos
+  29 g, y 29 g por 9,8 m/s² son unos 0,28 N. El error estándar con n - 2 grados de libertad es s = 0,48 cm; es el que se
+  usa en los intervalos de confianza.}
+\end{frame}
+
+% =====================================================================
+\section{Incertidumbre y otros modelos}
+
+\begin{frame}{9.1 Error de los instrumentos \hfill\recom}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Regla (0,1 cm)}
+      \[ u_{\text{lect}}=\frac{0{,}1}{2\sqrt3}=\vuLect\ \text{cm} \]
+      \[ u_y=\sqrt3\,u_{\text{lect}}=\vuY\ \text{cm} \]
+    \end{block}
+    \column{0.48\textwidth}
+    \begin{block}{Gramera (1 g)}
+      \[ u_x=\frac{1}{2\sqrt3}=\vuX\ \text{g} \]
+      Efecto en $y$: \vuXy\ cm \ (despreciable)
+    \end{block}
+  \end{columns}
+  \vspace{0.3em}
+  \begin{resultado}
+    \centering Peor caso de $y$ (tres errores sumados): \ $\pm3\times0{,}05=\pm\veMaxY$ cm
+  \end{resultado}
+  \origen{Resolución $\div\,2\sqrt3$: error de lectura uniforme en $\pm$ media división (guía GUM). $\sqrt3$: $y$ usa tres
+  lecturas (total, largo del objeto, $L_0$). Resolución de la gramera supuesta: 1 g.}
+  \note{Cada lectura de la regla puede estar errada hasta media división (0,05 cm); con distribución uniforme la
+  incertidumbre estándar es la resolución sobre 2 raíz de 3. El estiramiento combina tres lecturas (lectura total,
+  largo del objeto y L0), así que u\_y = raíz(3) u. En el peor caso los tres errores se suman: ±0,15 cm. La gramera
+  aporta a·u\_x = 0,0044 cm, despreciable.}
+\end{frame}
+
+
+\begin{frame}{9.2 ¿El error viene de los instrumentos?}
+  \begin{columns}[c]
+    \column{0.52\textwidth}
+    \includegraphics[width=\linewidth]{12_incertidumbre.png}
+    \column{0.46\textwidth}
+    \includegraphics[width=\linewidth]{16_rmse_escala.png}
+    \begin{resultado}[fontupper=\small]
+      RMSE $\approx$ \textbf{\vrazon\ veces} el error del instrumento:\\ domina el método de medición
+    \end{resultado}
+    \origen{$0{,}43\ \text{cm}\div0{,}05\ \text{cm}$ ($u_y$ de la diapositiva 9.1).}
+  \end{columns}
+  \note{Varias barras de error de ±0,15 cm no alcanzan la recta. La dispersión viene del método: objetos de formas
+  distintas, punto de enganche variable y un estiramiento que se obtiene restando longitudes.}
+\end{frame}
+
+\begin{frame}{9.3 Intervalos de confianza (95\,\%) \hfill\recom}
+  \centering
+  \begin{tabular}{lccc}
+    \toprule
+    & Estimado & \textbf{Mínimo} & \textbf{Máximo} \\
+    \midrule
+    $a$ (cm/g) & \vaCI & \vaLo & \vaHi \\
+    $b$ (cm)   & $\vbCI$ & $\vbLo$ & \vbHi \\
+    \rowcolor{azulclaro}
+    $k$ (N/m)  & \textbf{\vkVal} & \textbf{\vkLo} & \textbf{\vkHi} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{resultado}[fontupper=\small]
+      $b$ contiene el 0: \ compatible con $y=ax$
+    \end{resultado}
+    \column{0.48\textwidth}
+    \begin{nota}
+      $k$ entre \vkLo\ y \vkHi\ N/m
+    \end{nota}
+  \end{columns}
+  \origen{Mínimo y máximo $=$ estimado $\pm\,t\cdot SE$, con $t=2{,}306$ (tabla $t$ de Student, 8 grados de libertad) y
+  $SE$ calculado con $s=\sqrt{S/(n-2)}=0{,}48$ cm. Para $k$ se usa $k=g/a$ en los extremos de $a$.}
+  \note{Se usa s = raíz(S/(n-2)) = 0,48 cm y t(0,975; 8) = 2,306. SE(a) = s / raíz(Σ(x - x media)²) = 0,00126 y
+  SE(b) = s·raíz(1/n + x media²/Σ(x - x media)²) = 0,256. Intervalo = valor ± t·SE. El intervalo de k sale de invertir los extremos
+  del de a (k = g/a), por eso no es simétrico.}
+\end{frame}
+
+\begin{frame}{9.4 Propagación a $k$ (derivadas parciales) \hfill\recom}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \textbf{Caso general:} $k(m,g,\Delta x)=\dfrac{m\,g}{\Delta x}$
+    {\small\[ \delta k=\sqrt{\Bigl(\tfrac{\partial k}{\partial m}\delta m\Bigr)^2+\Bigl(\tfrac{\partial k}{\partial g}\delta g\Bigr)^2
+       +\Bigl(\tfrac{\partial k}{\partial \Delta x}\delta\Delta x\Bigr)^2} \]}
+    \small
+    $\dfrac{\partial k}{\partial m}=\dfrac{g}{\Delta x}$, \
+    $\dfrac{\partial k}{\partial g}=\dfrac{m}{\Delta x}$, \
+    $\dfrac{\partial k}{\partial \Delta x}=-\dfrac{m\,g}{\Delta x^2}$
+    \column{0.46\textwidth}
+    \textbf{Con la recta:} $k=\dfrac{g}{a}$, \ $\dfrac{\partial k}{\partial a}=-\dfrac{g}{a^2}$
+    {\small\[ \delta k=\frac{g}{a^2}\,\delta a=\frac{9{,}8}{0{,}151353^2}\cdot0{,}01261\approx\vuK\ \text{N/m} \]}
+    \begin{resultado}
+      \centering $k=(\vkVal\pm\vuK)$ N/m
+    \end{resultado}
+  \end{columns}
+  \origen{$\delta a=SE(a)=0{,}001261$ cm/g $=0{,}01261$ m/kg (diapositiva 9.3 y Apéndice D). $g=9{,}8$ m/s$^2$ se toma
+  exacta ($\delta g=0$).}
+  \note{Cada derivada parcial mide cuánto cambia k si cambia solo una de las magnitudes. Los errores se combinan en
+  cuadratura (raíz de la suma de cuadrados) porque son independientes y pueden compensarse. Como k sale de la pendiente
+  de la recta, se usa k = g/a: la única variable con error es a, y su error es el error estándar de la regresión.
+  Evaluando k = g/a en el mínimo y el máximo de a se obtiene el intervalo de 54,3 a 80,1 N/m.}
+\end{frame}
+
+\begin{frame}{9.5 Bandas de confianza y de predicción}
+  \begin{columns}[c]
+    \column{0.62\textwidth}
+    \includegraphics[width=\linewidth]{13_bandas_confianza.png}
+    \column{0.36\textwidth}
+    En $x=200$ g:
+    \begin{itemize}
+      \item Recta: $\pm\vbandaC$ cm
+      \item Dato nuevo: $\pm\vbandaP$ cm
+    \end{itemize}
+    \origen{Semiancho $=t\,s\sqrt{\tfrac1n+\tfrac{(x-\bar x)^2}{\sum(x_i-\bar x)^2}}$;\\ para un dato nuevo se suma 1 dentro de la raíz.}
+  \end{columns}
+  \note{La banda de confianza (roja) indica dónde está la recta verdadera; la de predicción (naranja), dónde caería una
+  medición nueva. Ambas se abren en los extremos: la recta es más segura cerca del promedio de las masas, 163 g.}
+\end{frame}
+
+\begin{frame}{9.6 Sensibilidad de $k$ \hfill\recom}
+  \centering
+  \includegraphics[width=0.9\linewidth]{14_sensibilidad_k.png}
+  \begin{columns}[T]
+    \column{0.48\textwidth}\centering\small
+    Ajuste sin cada medición: \textbf{\vjkMin--\vjkMax} N/m
+    \column{0.48\textwidth}\centering\small
+    Error de los instrumentos: \textbf{\vmcLo--\vmcHi} N/m
+  \end{columns}
+  \origen{Prueba de sensibilidad: se repite el ajuste dejando fuera una medición cada vez; $k$ final usa siempre las 10.
+  Derecha: 20\,000 ajustes variando cada lectura dentro de $\pm0{,}05$ cm y $\pm0{,}5$ g.}
+  \note{Ninguna medición se descarta: esto es solo una prueba de cuánto depende k de cada punto. Si el ajuste se repite
+  sin una medición cada vez, k queda entre 57,7 N/m (sin el alicate) y 66,7 N/m (sin el tornillo): el alicate es la
+  medición con más palanca. Al repetir el ajuste 20 000 veces perturbando las lecturas dentro del error de los
+  instrumentos (Monte Carlo), k casi no cambia. La incertidumbre de k viene de la dispersión de los datos.}
+\end{frame}
+
+\begin{frame}{9.7 ¿Otra función se ajusta mejor? \hfill\recom}
+  \centering
+  \includegraphics[height=0.7\textheight]{15_polinomios.png}
+  \origen{Derecha: polinomio menos recta, en cm. Las diferencias son del tamaño del error típico de los datos (franja gris, $\pm s$).}
+  \note{Se ajustaron polinomios de grado 1 a 4. Un polinomio de mayor grado siempre reduce S porque tiene más
+  parámetros, pero eso no significa que describa mejor el fenómeno. El de grado 4 se equivoca 4,76 cm al predecir un
+  dato que no usó: memoriza los datos en vez de describir la tendencia.}
+\end{frame}
+
+\begin{frame}{9.8 ¿Cuál predice mejor?}
+  \centering
+  \includegraphics[height=0.74\textheight]{17_polinomios_error.png}
+  \origen{Barra naranja: cada dato se predice con un polinomio ajustado con los otros 9 (validación cruzada).}
+  \note{Un polinomio con más términos siempre se acerca más a los datos usados (barras azules). Pero al predecir un
+  dato que no participó en el ajuste, el de grado 2 y el de grado 4 se equivocan más que la recta; el de grado 3 queda
+  parecido a la recta porque copia la tensión inicial de las cargas livianas.}
+\end{frame}
+
+\begin{frame}{9.9 Comparación de modelos}
+  \centering\footnotesize
+  \begin{tabular}{lccccc}
+    \toprule
+    Modelo & $S$ (cm$^2$) & $R^2$ & $R^2$ ajustado & Error al predecir & ¿Término nuevo significativo? \\
+    \midrule
+    \rowcolor{azulclaro}
+    Lineal & \vpAS & \vpArr & \vpAra & \vpAcv & \textcolor{verde}{sí} \\
+    Grado 2 & \vpBS & \vpBrr & \vpBra & \vpBcv & \textcolor{rojo}{no} \\
+    Grado 3 & \vpCS & \vpCrr & \vpCra & \vpCcv & \textcolor{rojo}{no} \\
+    Grado 4 & \vpDS & \vpDrr & \vpDra & \vpDcv & \textcolor{rojo}{no} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  \begin{resultado}
+    \centering \textbf{La recta es el modelo adecuado}
+  \end{resultado}
+  \origen{$R^2_{\text{aj}}=1-(1-R^2)\frac{n-1}{n-p-1}$, con $p$ = grado: castiga los términos de más. Término nuevo
+  significativo: prueba $t$ de su coeficiente al 95\,\% (Apéndice E); la prueba F da lo mismo.}
+  \note{Prueba t del coeficiente nuevo: grado 1: 12,00 > 2,306; grado 2: 1,08 < 2,365; grado 3: 1,88 < 2,447;
+  grado 4: 0,08 < 2,571. El R² ajustado casi no cambia entre la recta (0,9408) y la parábola (0,9420), aunque el
+  R² simple sube de 0,9474 a 0,9549 solo por tener un término más. Prueba F contra la recta: F2 = 1,17 < 5,59; F3 = 2,57 < 5,14; F4 = 1,43 < 5,41. Ninguna mejora
+  es significativa al 95 \%. Además, forzar la recta por el origen (y = ax) da S = 1,88, casi igual: Hooke puro, con
+  k = 66,0 N/m.}
+\end{frame}
+
+% =====================================================================
+\section{Sensibilidad al dato del parlante}
+
+\begin{frame}{10. Sensibilidad al dato del parlante (opción B)}
+  \begin{columns}[c]
+    \column{0.52\textwidth}
+    \includegraphics[width=\linewidth]{08_influencia.png}
+    \column{0.46\textwidth}
+    \footnotesize\textbf{¿Por qué este dato?} Su residuo (+0,94 cm) es el doble del siguiente. Posible causa: forma del
+    parlante y punto de enganche.
+    \vspace{0.4em}
+
+    \centering
+    \begin{tabular}{lrr}
+      \toprule
+      & Final (10) & Prueba (9) \\
+      \midrule
+      $S$ & 1,86 & 0,86 \\
+      $R^2$ & 0,947 & 0,973 \\
+      $k$ (N/m) & 64,7 & 66,6 \\
+      \bottomrule
+    \end{tabular}
+    \vspace{0.5em}
+    \begin{resultado}[fontupper=\small]
+      La recta casi no cambia: \textbf{se conservan los 10 datos}
+    \end{resultado}
+  \end{columns}
+  \origen{Prueba: el ajuste de la sección 5 repetido sin el parlante, solo para medir cuánto depende el resultado de él.}
+  \note{No se elimina ningún dato: quitar mediciones sin una causa experimental sería manipular el resultado. La
+  prueba solo responde qué pasaría si ese punto estuviera mal medido. Sin el parlante: a = 0,01472, b = -0,109, RMSE = 0,31. La pendiente cambia -2,7 \% y el nuevo k queda dentro del
+  intervalo de confianza. El error baja a menos de la mitad porque ese punto aportaba casi la mitad de S, pero la
+  recta casi no se mueve porque su masa está cerca del centro de los datos.}
+\end{frame}
+
+% =====================================================================
+\section{Constante del resorte}
+
+\begin{frame}{11. Constante del resorte}
+  \[ a^*=0{,}151353\ \frac{\text{m}}{\text{kg}}\quad\Rightarrow\quad k=\frac{g}{a^*}=\frac{9{,}8}{0{,}151353}\approx 64{,}7\ \text{N/m} \]
+  \begin{resultado}[fontupper=\large]
+    \centering $k=\vkVal\pm\vuK$ N/m \qquad {\normalsize(IC 95\,\%: \vkLo--\vkHi)}
+  \end{resultado}
+  \vspace{0.3em}
+  \centering Cada 100 g lo estiran unos 1,5 cm
+  \origen{$g=9{,}8$ m/s$^2$. \ $\pm5{,}4=k\cdot SE(a)/a$. \ Intervalo: $g$ dividido entre el mínimo y el máximo de $a$
+  (diapositiva 9.3).}
+  \note{La pendiente es g/k. Pasando a unidades del SI, 0,0151353 cm/g = 0,151353 m/kg. Hacen falta unos 64,7 N (el
+  peso de unos 6,6 kg) para estirar este resorte un metro.}
+\end{frame}
+
+% =====================================================================
+\section{Conclusiones}
+
+\begin{frame}{12. Conclusiones}
+  \begin{enumerate}\itemsep6pt
+    \item $\nabla S=0$ da la recta; el Hessiano prueba que es el \textbf{mínimo global}
+    \item $y=0{,}0151x-0{,}070$, \ $S=1{,}86$ cm$^2$
+    \item A mano, código propio y \texttt{polyfit} \textbf{coinciden}
+    \item Hooke se cumple: $R^2=0{,}947$, $b\approx0$, \ $k=\vkVal\pm\vuK$ N/m
+  \end{enumerate}
+  \note{El Cálculo Multivariable convierte hallar la mejor recta en minimizar S(a,b). Las derivadas parciales dan el
+  sistema; el Hessiano constante y definido positivo muestra que S es convexa; la superficie, las secciones y las curvas
+  de nivel permiten verlo. El computador verificó el resultado, no lo reemplazó.}
+\end{frame}
+
+\begin{frame}{12. Conclusiones (cont.)}
+  \begin{enumerate}\itemsep6pt\setcounter{enumi}{4}
+    \item \textbf{Ninguna otra función es mejor}: los polinomios no mejoran de forma significativa
+    \item \textbf{El error no viene de los instrumentos} (RMSE $\approx$ \vrazon\ veces su incertidumbre)
+    \item Las curvas de nivel muestran que \textbf{$a$ y $b$ se compensan}
+    \item La recta depende poco del parlante ($k$: 64,7 vs.\ 66,6 N/m en la prueba); el alicate es la medición con más peso
+  \end{enumerate}
+  \note{El RMSE de 4,3 mm equivale a unos 29 g; la incertidumbre de la regla es 0,05 cm y la de la gramera es
+  despreciable. En la prueba de sensibilidad sin el parlante, S baja a menos de la mitad, pero k cambia menos del 3 \%;
+  por eso el resultado final conserva los 10 datos.}
+\end{frame}
+
+\begin{frame}{12.1 Limitaciones}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{itemize}\itemsep6pt
+      \item Solo 10 datos
+      \item Una lectura por objeto
+      \item Método indirecto (3 lecturas)
+    \end{itemize}
+    \column{0.49\textwidth}
+    \begin{itemize}\itemsep6pt
+      \item Tensión inicial con cargas livianas
+      \item Válido solo de 0 a 410 g
+      \item 4 cargas sin foto de la medición
+    \end{itemize}
+  \end{columns}
+  \note{Con 10 puntos la curvatura leve no se distingue del ruido y el intervalo de k es amplio (25,8 N/m). Sin
+  repeticiones no se puede estimar la incertidumbre tipo A de cada punto. El estiramiento sale de restar tres lecturas
+  de objetos de formas distintas, lo que explica que el RMSE (0,43 cm) supere el error instrumental (0,05 cm). No se debe
+  extrapolar fuera del rango medido.}
+\end{frame}
+
+\begin{frame}{12.2 Recomendaciones}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{block}{Medición}
+      \begin{itemize}\small
+        \item Pesas conocidas, un gancho
+        \item Medir el extremo del resorte
+        \item Repetir cada lectura 3 veces
+      \end{itemize}
+    \end{block}
+    \column{0.49\textwidth}
+    \begin{block}{Diseño}
+      \begin{itemize}\small
+        \item Más masas entre 0 y 100 g
+        \item Más datos en los extremos
+        \item Fotografiar cada medición
+      \end{itemize}
+    \end{block}
+  \end{columns}
+  \note{Medir directamente la posición del extremo inferior del resorte reduce tres lecturas a una. Repetir permite
+  barras de error tipo A. Más masas livianas sirven para estudiar la tensión inicial; más datos en los extremos
+  estrechan el intervalo de k.}
+\end{frame}
+
+\begin{frame}{Referencias}
+  \footnotesize
+  \begin{itemize}
+    \item Harris, C. R., et al. (2020). Array programming with NumPy. \emph{Nature}, 585, 357--362.
+    \item Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. \emph{Computing in Science \& Engineering},
+          9(3), 90--95.
+    \item JCGM (2008). \emph{Guía para la expresión de la incertidumbre de medida (GUM)}. JCGM 100:2008.
+    \item Montgomery, D. C., Peck, E. A. y Vining, G. G. (2012). \emph{Introduction to Linear Regression Analysis}
+          (5.ª ed.). Wiley.
+    \item Molina, A. (2026). \emph{Proyecto de Cálculo Multivariable}. Universidad Cooperativa de Colombia.
+  \end{itemize}
+\end{frame}
+
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \begin{columns}[c]
+    \column{0.3\textwidth}
+    \centering\includegraphics[height=0.86\textheight]{img4.jpg}
+    \column{0.66\textwidth}
+    {\color{azul}\fontsize{40}{44}\selectfont\bfseries Gracias\par}
+    \vspace{0.3em}{\color{naranja}\rule{0.85\linewidth}{2pt}}\par\vspace{0.4em}
+    {\color{naranja}\Large\bfseries ¿Preguntas?\par}
+    \vspace{1.2em}
+    \begin{resultado}[width=0.85\linewidth]
+      \renewcommand{\arraystretch}{1.35}
+      \begin{tabular}{@{}l@{\hspace{1.2em}}l@{}}
+        {\small\color{gris}Recta} & {\bfseries\color{azul}$y=0{,}0151\,x-0{,}070$} \\
+        {\small\color{gris}Constante del resorte} & {\bfseries\color{azul}$k=\vkVal\pm\vuK$ N/m} \\
+        {\small\color{gris}Ajuste} & {\bfseries\color{azul}$R^2=0{,}947$}
+      \end{tabular}
+    \end{resultado}
+  \end{columns}
+\end{frame}}
+
+% =====================================================================
+\appendix
+
+\begin{frame}{Apéndice A. Diagramas de flujo}
+  \centering
+  \begin{columns}[c]
+    \column{0.48\textwidth}\centering
+    \includegraphics[height=0.72\textheight]{diagrama_2_sumas.png}\\{\scriptsize Sumas}
+    \column{0.48\textwidth}\centering
+    \includegraphics[height=0.72\textheight]{diagrama_3_error.png}\\{\scriptsize $S$, RMSE y $R^2$}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Apéndice B. Valores predichos y residuos}
+  \centering\small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Objeto & $x$ (g) & $y$ (cm) & $\hat y$ (cm) & $e$ (cm) \\
+    \midrule
+    Sin carga & 0 & 0,0 & $-0{,}07$ & $+0{,}07$ \\
+    Llave grande & 15 & 0,1 & 0,16 & $-0{,}06$ \\
+    Tornillo grande & 70 & 0,4 & 0,99 & $-0{,}59$ \\
+    Taza plástica & 92 & 1,6 & 1,32 & $+0{,}28$ \\
+    Rollo de cinta & 150 & 1,9 & 2,20 & $-0{,}30$ \\
+    Herradura & 185 & 2,5 & 2,73 & $-0{,}23$ \\
+    Teléfono LG & 190 & 2,9 & 2,81 & $+0{,}09$ \\
+    \rowcolor{naranja!12}
+    Parlante & 220 & 4,2 & 3,26 & $+0{,}94$ \\
+    Libro pequeño & 300 & 4,8 & 4,47 & $+0{,}33$ \\
+    Alicate & 410 & 5,6 & 6,14 & $-0{,}54$ \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Apéndice C. Valores propios y comprobación}
+  \[ \lambda^2-825\,848\,\lambda+5\,862\,864=0\ \Rightarrow\ \lambda_1=825\,840{,}9,\quad \lambda_2=7{,}099 \]
+  \begin{align*}
+    412\,914\,(0{,}0151353)+1632\,(-0{,}0700810)&=6135{,}21\approx 6135{,}2\\
+    1632\,(0{,}0151353)+10\,(-0{,}0700810)&=24{,}0000
+  \end{align*}
+\end{frame}
+
+\begin{frame}{Apéndice D. Intervalos de confianza paso a paso}
+  \small
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+    \textbf{1.} Error estándar de la regresión ($gl=n-2=8$):
+    \[ s=\sqrt{\tfrac{S}{n-2}}=\sqrt{\tfrac{1{,}8639}{8}}=0{,}4827\ \text{cm} \]
+    \textbf{2.} Dispersión de las masas:
+    \[ S_{xx}=\textstyle\sum x_i^2-\frac{(\sum x_i)^2}{n}=146\,571{,}6\ \text{g}^2 \]
+    {\footnotesize ($412\,914-1632^2/10=412\,914-266\,342{,}4$)}
+    \column{0.46\textwidth}
+    \textbf{3.} Errores estándar:
+    \[ SE(a)=\frac{s}{\sqrt{S_{xx}}}=\frac{0{,}4827}{382{,}85}=0{,}001261 \]
+    \[ SE(b)=s\sqrt{\tfrac{\sum x_i^2}{n\,S_{xx}}}=0{,}4827\sqrt{0{,}2817}=0{,}2562 \]
+    \textbf{4.} $t_{0{,}025;\,8}=2{,}306$:\\[2pt]
+    $a\in[0{,}01223;\ 0{,}01804]$ cm/g\\
+    $b\in[-0{,}661;\ 0{,}521]$ cm
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Apéndice E. Fórmulas de incertidumbre}
+  \small
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \textbf{Instrumento} (resolución $r$): \ $u=\dfrac{r}{2\sqrt3}$\\[6pt]
+    \textbf{Propagación:} \ $u_k=\dfrac{g}{a^2}u_a=k\,\dfrac{u_a}{a}$\\[6pt]
+    \textbf{Intervalo:} \ valor $\pm\,t_{0{,}975;\,n-2}\cdot SE$
+    \column{0.49\textwidth}
+    \textbf{Prueba F:} \ $F=\dfrac{(S_1-S_d)/(d-1)}{S_d/(n-d-1)}$\\[6pt]
+    \textbf{Validación cruzada:} ajustar sin el dato $i$ y predecirlo\\[6pt]
+    \textbf{Monte Carlo:} 20\,000 ajustes con lecturas perturbadas
+  \end{columns}
+\end{frame}
+
+\end{document}
