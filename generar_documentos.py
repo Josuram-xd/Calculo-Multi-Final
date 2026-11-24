@@ -9,10 +9,11 @@ Uso:  python regresion_hooke.py && python diagramas.py && python generar_documen
 import re
 from pathlib import Path
 
-import docx
+import tempfile
+
 import pypandoc
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
+
+from estilo_word import acabado, referencia
 
 from regresion_hooke import (CORTOS, OBJETOS, OTRAS_RECTAS, RES_GRAMERA, RES_REGLA, X, Y, ajustar, banda, calidad,
                              error_S, incertidumbre_instrumental, intervalos, jackknife, montecarlo, polinomios,
@@ -146,6 +147,10 @@ V.update({
     "F2": c(POLIS[1]["F"], 2), "F2c": c(POLIS[1]["F_crit"], 2), "F3": c(POLIS[2]["F"], 2),
     "F3c": c(POLIS[2]["F_crit"], 2), "F4": c(POLIS[3]["F"], 2), "F4c": c(POLIS[3]["F_crit"], 2),
     "cv1": c(POLIS[0]["cv"], 2), "cv3": c(POLIS[2]["cv"], 2), "cv4": c(POLIS[3]["cv"], 2),
+    "s4": c(IC["s"], 4), "Sxxc": c(IC["sxx_c"], 1), "rSxxc": c(IC["sxx_c"] ** 0.5, 2),
+    "seA6": c(IC["se_a"], 6), "seB4": c(IC["se_b"], 4), "seA10": c(IC["se_a"] * 10, 5),
+    "R2l": c(POLIS[0]["r2"], 4), "R2q": c(POLIS[1]["r2"], 4), "R2al": c(POLIS[0]["r2a"], 4),
+    "R2aq": c(POLIS[1]["r2a"], 4),
 })
 
 # ------------------------------------------------------------------ tablas
@@ -405,6 +410,26 @@ $$S(a,b) = «m:Sxx»\,a^2 + «m:H12»\,ab + «n»\,b^2 - «m:2Sxy»\,a - «m:2Sy
 
 un polinomio de segundo grado en $a$ y $b$ (un paraboloide).
 
+## 4.1 Notación estadística
+
+La forma $y = ax + b$ es cómoda para derivar. En estadística, el mismo modelo de regresión lineal simple se escribe
+
+$$y = \beta_0 + \beta_1 x + \varepsilon ,$$
+
+donde cada término significa:
+
+| Símbolo | Significado | En este proyecto |
+|:---:|---|---|
+| $y$ | Variable dependiente (la que se predice) | Estiramiento del resorte (cm) |
+| $x$ | Variable independiente (explicativa) | Masa colgada (g) |
+| $\beta_0$ | Intercepto: corte teórico con el eje $y$ | $b^* = «m:b3»$ cm |
+| $\beta_1$ | Pendiente: cambio del estiramiento por cada gramo | $a^* = «m:a4»$ cm/g |
+| $\varepsilon$ | Error aleatorio: lo que separa cada dato real de la recta | Se estima con los residuos $e_i$ |
+
+: Equivalencia entre las dos notaciones del modelo.
+
+El error aleatorio $\varepsilon$ no se puede observar directamente; los residuos $e_i = y_i - (a^* x_i + b^*)$ son su estimación a partir de los 10 datos.
+
 # 5. Procedimiento analítico
 
 Esta parte se hizo a mano. El desarrollo completo, operación por operación, está en el documento **Guía paso a paso a mano**; aquí se presenta el resumen.
@@ -624,13 +649,23 @@ $$u_y = \sqrt{3}\,u = «m:uY»\ \text{cm}, \qquad |\Delta y|_{\max} = 3 \cdot 0{
 
 ![Tamaño del RMSE comparado con la precisión de la regla.](figuras/16_rmse_escala.png){width=12cm}
 
-**Propagación a la constante del resorte.** Como $k = g/a$, $u_k = \left|\partial k / \partial a\right| u_a = k\,u_a/a = «m:uK»$ N/m.
-
 ## 11.3 Intervalos de confianza: valor mínimo y máximo
 
-Con $s = «m:sReg»$ cm y $t_{0{,}975;\,8} = «m:tCrit»$ (8 grados de libertad):
+Los parámetros $a^*$ y $b^*$ son estimaciones hechas con una muestra de 10 objetos. Para saber entre qué valores están con 95 % de confianza se siguen cuatro pasos:
 
-$$SE(a) = \frac{s}{\sqrt{\sum (x_i - \bar{x})^2}}, \qquad SE(b) = s\sqrt{\frac{1}{n} + \frac{\bar{x}^2}{\sum (x_i - \bar{x})^2}}, \qquad \text{IC}_{95\,\%} = \text{valor} \pm t \cdot SE.$$
+**Paso 1. Error estándar de la regresión.** Se divide el error mínimo entre los grados de libertad ($n - 2 = 8$, porque se estimaron dos parámetros):
+
+$$s = \sqrt{\frac{S(a^*, b^*)}{n-2}} = \sqrt{\frac{«m:S»}{8}} = «m:s4»\ \text{cm}$$
+
+**Paso 2. Dispersión de las masas** (qué tan separadas están en el eje $x$):
+
+$$S_{xx} = \sum x_i^2 - \frac{\left(\sum x_i\right)^2}{n} = «m:Sxx» - \frac{«m:Sx»^2}{«n»} = «m:Sxxc»\ \text{g}^2$$
+
+**Paso 3. Error estándar de cada parámetro:**
+
+$$SE(a) = \frac{s}{\sqrt{S_{xx}}} = \frac{«m:s4»}{«m:rSxxc»} = «m:seA6»\ \text{cm/g}, \qquad SE(b) = s\sqrt{\frac{\sum x_i^2}{n\,S_{xx}}} = «m:seB4»\ \text{cm}$$
+
+**Paso 4. Intervalo al 95 %**, con $t_{0{,}975;\,8} = «m:tCrit»$ (tabla $t$ de Student, 8 grados de libertad): $\ \text{IC}_{95\,\%} = \text{valor} \pm t \cdot SE$.
 
 «T_IC»
 
@@ -643,7 +678,23 @@ $$SE(a) = \frac{s}{\sqrt{\sum (x_i - \bar{x})^2}}, \qquad SE(b) = s\sqrt{\frac{1
 
 La banda de confianza indica dónde está la recta verdadera (en $x = 200$ g, ±«bandaC» cm); la de predicción, dónde caería una medición nueva (±«bandaP» cm). Ambas se abren en los extremos.
 
-## 11.4 Sensibilidad de la constante del resorte
+## 11.4 Propagación del error a la constante del resorte
+
+La constante $k$ no se mide con un instrumento: se calcula a partir de otras magnitudes. En general, $k = F/\Delta x = m g / \Delta x$, y como cada magnitud tiene su incertidumbre, el error de $k$ se obtiene con **derivadas parciales**, combinando los errores en cuadratura (son independientes y pueden compensarse):
+
+$$\delta k = \sqrt{\left(\frac{\partial k}{\partial m}\,\delta m\right)^2 + \left(\frac{\partial k}{\partial g}\,\delta g\right)^2 + \left(\frac{\partial k}{\partial \Delta x}\,\delta \Delta x\right)^2}$$
+
+Cada derivada parcial mide cuánto cambia $k$ si cambia solo una de las magnitudes:
+
+$$\frac{\partial k}{\partial m} = \frac{g}{\Delta x}, \qquad \frac{\partial k}{\partial g} = \frac{m}{\Delta x}, \qquad \frac{\partial k}{\partial \Delta x} = -\frac{m g}{(\Delta x)^2}$$
+
+**Aplicación a este proyecto.** Aquí $k$ sale de la pendiente de la recta, $k = g/a$, así que la única magnitud con error es $a$ (se toma $g = 9{,}8$ m/s² como exacta, $\delta g = 0$). Con $\partial k/\partial a = -g/a^2$, la pendiente en unidades del SI $a^* = «m:a10»$ m/kg y su error estándar $\delta a = SE(a) = «m:seA10»$ m/kg:
+
+$$\delta k = \left|\frac{\partial k}{\partial a}\right| \delta a = \frac{g}{(a^*)^2}\,\delta a = \frac{9{,}8}{«m:a10»^2} \times «m:seA10» \approx «m:uK»\ \text{N/m}$$
+
+Resultado: $\mathbf{k = («m:k» \pm «m:uK»)}$ **N/m**. Al evaluar $k = g/a$ en el mínimo y el máximo del intervalo de $a$ se obtiene el intervalo de confianza de $k$, de «kLo» a «kHi» N/m.
+
+## 11.5 Sensibilidad de la constante del resorte
 
 Se midió cuánto cambia $k$ de dos formas. Ninguna medición se descarta: el valor final de $k$ usa siempre los 10 datos; estas pruebas solo indican cuánto depende el resultado de cada punto y de los instrumentos.
 
@@ -654,7 +705,7 @@ Se midió cuánto cambia $k$ de dos formas. Ninguna medición se descarta: el va
 
 La incertidumbre de $k$ viene de la dispersión de los datos (y de pocos datos), no de la regla ni de la gramera.
 
-## 11.5 Regresión polinómica: ¿se ajusta mejor otra función?
+## 11.6 Regresión polinómica: ¿se ajusta mejor otra función?
 
 Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4 con el mismo criterio de mínimos cuadrados.
 
@@ -666,7 +717,7 @@ Para comprobar que la relación es lineal se ajustaron polinomios de grado 1 a 4
 
 : Comparación de modelos. "Error al predecir" es la validación cruzada dejando un dato fuera.
 
-- Un polinomio de mayor grado **siempre** reduce $S$, porque tiene más parámetros. Eso no prueba que describa mejor el fenómeno.
+- Un polinomio de mayor grado **siempre** reduce $S$ y sube $R^2$, porque tiene más parámetros. Eso no prueba que describa mejor el fenómeno. Por eso se usa el **$R^2$ ajustado**, que castiga los términos innecesarios: $R^2_{\text{aj}} = 1 - (1 - R^2)\dfrac{n-1}{n-p-1}$, con $p$ el grado. Para la recta, $1 - (1 - «m:R2l»)\cdot 9/8 = «m:R2al»$; para la parábola, $1 - (1 - «m:R2q»)\cdot 9/7 = «m:R2aq»$. Casi no cambia, aunque el $R^2$ simple sube de «R2l» a «R2q».
 - El coeficiente nuevo de cada polinomio **no es significativo**: su estadístico $t$ no supera el valor crítico, así que podría ser cero.
 - La prueba F confirma que la mejora sobre la recta no es real al 95 %: $F_2 = «m:F2» < «m:F2c»$, $F_3 = «m:F3» < «m:F3c»$, $F_4 = «m:F4» < «m:F4c»$.
 - El de grado 4 se equivoca «cv4» cm al predecir un dato que no usó (la recta, «cv1» cm): memoriza los datos en vez de describir la tendencia. El de grado 3 predice parecido a la recta («cv3» cm) solo porque copia la tensión inicial con cargas livianas.
@@ -1113,30 +1164,18 @@ V.update({
 })
 
 
-def bordes(ruta):
-    """Pone bordes a todas las tablas (el estilo por defecto de pandoc no los trae)."""
-    d = docx.Document(ruta)
-    for t in d.tables:
-        pr = t._tbl.tblPr
-        b = OxmlElement("w:tblBorders")
-        for lado in ("top", "left", "bottom", "right", "insideH", "insideV"):
-            el = OxmlElement(f"w:{lado}")
-            el.set(qn("w:val"), "single")
-            el.set(qn("w:sz"), "4")
-            el.set(qn("w:color"), "808080")
-            b.append(el)
-        pr.append(b)
-    d.save(ruta)
-
-
 def construir(md, nombre):
     texto = llenar(llenar(md))  # dos pasadas: las tablas insertadas tambien traen marcas
     faltan = re.findall(r"«[^»]*»", texto)
     assert not faltan, f"Marcas sin reemplazar: {faltan}"
     salida = RAIZ / nombre
-    pypandoc.convert_text(texto, "docx", format="markdown", outputfile=str(salida),
-                          extra_args=[f"--resource-path={RAIZ}", "--toc", "--toc-depth=2"])
-    bordes(salida)
+    with tempfile.TemporaryDirectory() as tmp:
+        ref = Path(tmp) / "referencia.docx"
+        referencia(ref)
+        pypandoc.convert_text(texto, "docx", format="markdown", outputfile=str(salida),
+                              extra_args=[f"--resource-path={RAIZ}", "--toc", "--toc-depth=2",
+                                          f"--reference-doc={ref}"])
+    acabado(salida)
     print("Generado:", salida)
 
 

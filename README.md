@@ -9,6 +9,7 @@ Regresión lineal por mínimos cuadrados del estiramiento de un resorte en funci
 - `presentacion/presentacion_hooke_notas.pdf`: las mismas diapositivas con el guion de quien expone debajo (las explicaciones van en `\note{}`).
 - Fuente de las diapositivas: `presentacion_hooke.tex`; `presentacion/valores.tex` lo genera `regresion_hooke.py`.
 - `diagramas.py`: diagramas de flujo del pseudocódigo en `diagramas/`.
+- `estilo.py` y `estilo_word.py`: letra (Fira Sans, en `fuentes/`, licencia OFL) y colores comunes a gráficas, diagramas, informes Word y presentación. La letra va incrustada en los .docx para que se vea igual en cualquier computador.
 - `generar_documentos.py`: reconstruye los dos documentos Word a partir de los datos.
 
 ## Cómo regenerar todo

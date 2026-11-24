@@ -270,7 +270,7 @@
   \end{columns}
   \note{Incluir b permite comprobar Hooke (si se cumple, b es casi cero) y hace de S una función de dos variables,
   con gradiente y Hessiano. Elevar el error al cuadrado evita que los signos se cancelen, permite derivar y castiga
-  más los errores grandes. La sección 8 confirma con polinomios que no hay curvatura significativa.}
+  más los errores grandes. La sección 9 confirma con polinomios que no hay curvatura significativa.}
 \end{frame}
 
 % =====================================================================
@@ -288,6 +288,26 @@
   \note{Para cada masa el modelo predice y = a x + b; la diferencia con lo medido es el residuo. Como unos residuos
   son positivos y otros negativos, se suman sus cuadrados. Al reemplazar los diez datos y desarrollar, S queda como
   un polinomio de segundo grado en a y b.}
+\end{frame}
+
+\begin{frame}{4.1 Notación estadística}
+  \[ y=\beta_0+\beta_1\,x+\varepsilon \]
+  \centering\small
+  \begin{tabular}{cll}
+    \toprule
+    Símbolo & Significado & En este proyecto \\
+    \midrule
+    $y$ & variable dependiente & estiramiento del resorte (cm) \\
+    $x$ & variable independiente & masa colgada (g) \\
+    $\beta_0$ & intercepto & $b^*=-0{,}070$ cm \\
+    $\beta_1$ & pendiente & $a^*=0{,}0151$ cm/g \\
+    $\varepsilon$ & error aleatorio & se estima con los residuos $e_i$ \\
+    \bottomrule
+  \end{tabular}
+  \origen{Forma estándar de la regresión lineal simple en estadística. Es el mismo modelo $y=ax+b$: $\beta_0=b$, $\beta_1=a$.}
+  \note{La notación y = ax + b es cómoda para derivar; en estadística el mismo modelo se escribe con betas. Epsilon es
+  el error aleatorio real, que no se puede observar; los residuos e\_i = y\_i - (a x\_i + b) son su estimación con los
+  10 datos.}
 \end{frame}
 
 % =====================================================================
@@ -755,7 +775,7 @@ FIN ALGORITMO
   \end{columns}
   \vspace{0.3em}
   \begin{resultado}
-    \centering Propagación: \ $u_k=k\,\dfrac{u_a}{a}=\vuK$ N/m
+    \centering Peor caso de $y$ (tres errores sumados): \ $\pm3\times0{,}05=\pm\veMaxY$ cm
   \end{resultado}
   \origen{Resolución $\div\,2\sqrt3$: error de lectura uniforme en $\pm$ media división (guía GUM). $\sqrt3$: $y$ usa tres
   lecturas (total, largo del objeto, $L_0$). Resolución de la gramera supuesta: 1 g.}
@@ -764,6 +784,7 @@ FIN ALGORITMO
   largo del objeto y L0), así que u\_y = raíz(3) u. En el peor caso los tres errores se suman: ±0,15 cm. La gramera
   aporta a·u\_x = 0,0044 cm, despreciable.}
 \end{frame}
+
 
 \begin{frame}{9.2 ¿El error viene de los instrumentos?}
   \begin{columns}[c]
@@ -774,7 +795,7 @@ FIN ALGORITMO
     \begin{resultado}[fontupper=\small]
       RMSE $\approx$ \textbf{\vrazon\ veces} el error del instrumento:\\ domina el método de medición
     \end{resultado}
-    \origen{$0{,}43\ \text{cm}\div0{,}05\ \text{cm}$ ($u_y$ de la diapositiva anterior).}
+    \origen{$0{,}43\ \text{cm}\div0{,}05\ \text{cm}$ ($u_y$ de la diapositiva 9.1).}
   \end{columns}
   \note{Varias barras de error de ±0,15 cm no alcanzan la recta. La dispersión viene del método: objetos de formas
   distintas, punto de enganche variable y un estiramiento que se obtiene restando longitudes.}
@@ -810,7 +831,32 @@ FIN ALGORITMO
   del de a (k = g/a), por eso no es simétrico.}
 \end{frame}
 
-\begin{frame}{9.4 Bandas de confianza y de predicción}
+\begin{frame}{9.4 Propagación a $k$ (derivadas parciales) \hfill\recom}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \textbf{Caso general:} $k(m,g,\Delta x)=\dfrac{m\,g}{\Delta x}$
+    {\small\[ \delta k=\sqrt{\Bigl(\tfrac{\partial k}{\partial m}\delta m\Bigr)^2+\Bigl(\tfrac{\partial k}{\partial g}\delta g\Bigr)^2
+       +\Bigl(\tfrac{\partial k}{\partial \Delta x}\delta\Delta x\Bigr)^2} \]}
+    \small
+    $\dfrac{\partial k}{\partial m}=\dfrac{g}{\Delta x}$, \
+    $\dfrac{\partial k}{\partial g}=\dfrac{m}{\Delta x}$, \
+    $\dfrac{\partial k}{\partial \Delta x}=-\dfrac{m\,g}{\Delta x^2}$
+    \column{0.46\textwidth}
+    \textbf{Con la recta:} $k=\dfrac{g}{a}$, \ $\dfrac{\partial k}{\partial a}=-\dfrac{g}{a^2}$
+    {\small\[ \delta k=\frac{g}{a^2}\,\delta a=\frac{9{,}8}{0{,}151353^2}\cdot0{,}01261\approx\vuK\ \text{N/m} \]}
+    \begin{resultado}
+      \centering $k=(\vkVal\pm\vuK)$ N/m
+    \end{resultado}
+  \end{columns}
+  \origen{$\delta a=SE(a)=0{,}001261$ cm/g $=0{,}01261$ m/kg (diapositiva 9.3 y Apéndice D). $g=9{,}8$ m/s$^2$ se toma
+  exacta ($\delta g=0$).}
+  \note{Cada derivada parcial mide cuánto cambia k si cambia solo una de las magnitudes. Los errores se combinan en
+  cuadratura (raíz de la suma de cuadrados) porque son independientes y pueden compensarse. Como k sale de la pendiente
+  de la recta, se usa k = g/a: la única variable con error es a, y su error es el error estándar de la regresión.
+  Evaluando k = g/a en el mínimo y el máximo de a se obtiene el intervalo de 54,3 a 80,1 N/m.}
+\end{frame}
+
+\begin{frame}{9.5 Bandas de confianza y de predicción}
   \begin{columns}[c]
     \column{0.62\textwidth}
     \includegraphics[width=\linewidth]{13_bandas_confianza.png}
@@ -826,7 +872,7 @@ FIN ALGORITMO
   medición nueva. Ambas se abren en los extremos: la recta es más segura cerca del promedio de las masas, 163 g.}
 \end{frame}
 
-\begin{frame}{9.5 Sensibilidad de $k$ \hfill\recom}
+\begin{frame}{9.6 Sensibilidad de $k$ \hfill\recom}
   \centering
   \includegraphics[width=0.9\linewidth]{14_sensibilidad_k.png}
   \begin{columns}[T]
@@ -843,7 +889,7 @@ FIN ALGORITMO
   instrumentos (Monte Carlo), k casi no cambia. La incertidumbre de k viene de la dispersión de los datos.}
 \end{frame}
 
-\begin{frame}{9.6 ¿Otra función se ajusta mejor? \hfill\recom}
+\begin{frame}{9.7 ¿Otra función se ajusta mejor? \hfill\recom}
   \centering
   \includegraphics[height=0.7\textheight]{15_polinomios.png}
   \origen{Derecha: polinomio menos recta, en cm. Las diferencias son del tamaño del error típico de los datos (franja gris, $\pm s$).}
@@ -852,7 +898,7 @@ FIN ALGORITMO
   dato que no usó: memoriza los datos en vez de describir la tendencia.}
 \end{frame}
 
-\begin{frame}{9.7 ¿Cuál predice mejor?}
+\begin{frame}{9.8 ¿Cuál predice mejor?}
   \centering
   \includegraphics[height=0.74\textheight]{17_polinomios_error.png}
   \origen{Barra naranja: cada dato se predice con un polinomio ajustado con los otros 9 (validación cruzada).}
@@ -861,26 +907,28 @@ FIN ALGORITMO
   parecido a la recta porque copia la tensión inicial de las cargas livianas.}
 \end{frame}
 
-\begin{frame}{9.8 Comparación de modelos}
-  \centering\small
-  \begin{tabular}{lcccc}
+\begin{frame}{9.9 Comparación de modelos}
+  \centering\footnotesize
+  \begin{tabular}{lccccc}
     \toprule
-    Modelo & $S$ (cm$^2$) & $R^2$ & Error al predecir & ¿Término nuevo significativo? \\
+    Modelo & $S$ (cm$^2$) & $R^2$ & $R^2$ ajustado & Error al predecir & ¿Término nuevo significativo? \\
     \midrule
     \rowcolor{azulclaro}
-    Lineal & \vpAS & \vpArr & \vpAcv & \textcolor{verde}{sí} \\
-    Grado 2 & \vpBS & \vpBrr & \vpBcv & \textcolor{rojo}{no} \\
-    Grado 3 & \vpCS & \vpCrr & \vpCcv & \textcolor{rojo}{no} \\
-    Grado 4 & \vpDS & \vpDrr & \vpDcv & \textcolor{rojo}{no} \\
+    Lineal & \vpAS & \vpArr & \vpAra & \vpAcv & \textcolor{verde}{sí} \\
+    Grado 2 & \vpBS & \vpBrr & \vpBra & \vpBcv & \textcolor{rojo}{no} \\
+    Grado 3 & \vpCS & \vpCrr & \vpCra & \vpCcv & \textcolor{rojo}{no} \\
+    Grado 4 & \vpDS & \vpDrr & \vpDra & \vpDcv & \textcolor{rojo}{no} \\
     \bottomrule
   \end{tabular}
   \vspace{0.8em}
   \begin{resultado}
     \centering \textbf{La recta es el modelo adecuado}
   \end{resultado}
-  \origen{Término nuevo significativo: prueba $t$ de su coeficiente al 95\,\% (Apéndice D). La prueba F da lo mismo.}
+  \origen{$R^2_{\text{aj}}=1-(1-R^2)\frac{n-1}{n-p-1}$, con $p$ = grado: castiga los términos de más. Término nuevo
+  significativo: prueba $t$ de su coeficiente al 95\,\% (Apéndice E); la prueba F da lo mismo.}
   \note{Prueba t del coeficiente nuevo: grado 1: 12,00 > 2,306; grado 2: 1,08 < 2,365; grado 3: 1,88 < 2,447;
-  grado 4: 0,08 < 2,571. Prueba F contra la recta: F2 = 1,17 < 5,59; F3 = 2,57 < 5,14; F4 = 1,43 < 5,41. Ninguna mejora
+  grado 4: 0,08 < 2,571. El R² ajustado casi no cambia entre la recta (0,9408) y la parábola (0,9420), aunque el
+  R² simple sube de 0,9474 a 0,9549 solo por tener un término más. Prueba F contra la recta: F2 = 1,17 < 5,59; F3 = 2,57 < 5,14; F4 = 1,43 < 5,41. Ninguna mejora
   es significativa al 95 \%. Además, forzar la recta por el origen (y = ax) da S = 1,88, casi igual: Hooke puro, con
   k = 66,0 N/m.}
 \end{frame}
@@ -1083,7 +1131,26 @@ FIN ALGORITMO
   \end{align*}
 \end{frame}
 
-\begin{frame}{Apéndice D. Fórmulas de incertidumbre}
+\begin{frame}{Apéndice D. Intervalos de confianza paso a paso}
+  \small
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+    \textbf{1.} Error estándar de la regresión ($gl=n-2=8$):
+    \[ s=\sqrt{\tfrac{S}{n-2}}=\sqrt{\tfrac{1{,}8639}{8}}=0{,}4827\ \text{cm} \]
+    \textbf{2.} Dispersión de las masas:
+    \[ S_{xx}=\textstyle\sum x_i^2-\frac{(\sum x_i)^2}{n}=146\,571{,}6\ \text{g}^2 \]
+    {\footnotesize ($412\,914-1632^2/10=412\,914-266\,342{,}4$)}
+    \column{0.46\textwidth}
+    \textbf{3.} Errores estándar:
+    \[ SE(a)=\frac{s}{\sqrt{S_{xx}}}=\frac{0{,}4827}{382{,}85}=0{,}001261 \]
+    \[ SE(b)=s\sqrt{\tfrac{\sum x_i^2}{n\,S_{xx}}}=0{,}4827\sqrt{0{,}2817}=0{,}2562 \]
+    \textbf{4.} $t_{0{,}025;\,8}=2{,}306$:\\[2pt]
+    $a\in[0{,}01223;\ 0{,}01804]$ cm/g\\
+    $b\in[-0{,}661;\ 0{,}521]$ cm
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Apéndice E. Fórmulas de incertidumbre}
   \small
   \begin{columns}[T]
     \column{0.49\textwidth}

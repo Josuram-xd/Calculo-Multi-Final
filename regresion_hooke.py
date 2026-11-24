@@ -45,15 +45,8 @@ RAIZ = Path(__file__).parent
 FIG = RAIZ / "figuras"
 VALORES_TEX = RAIZ / "presentacion" / "valores.tex"
 
-# Paleta comun a todas las graficas (la misma de la presentacion)
-AZUL, NARANJA, VERDE, ROJO, GRIS, MORADO = "#1F4E79", "#E07A1F", "#2E8B57", "#C0392B", "#6B7280", "#7B4FA0"
-plt.rcParams.update({
-    "font.family": ["Inter", "DejaVu Sans"], "font.size": 11, "axes.titlesize": 13,
-    "axes.titleweight": "bold", "axes.labelsize": 11, "axes.spines.top": False,
-    "axes.spines.right": False, "axes.grid": True, "grid.alpha": 0.25, "legend.frameon": False,
-    "axes.prop_cycle": plt.cycler(color=[AZUL, NARANJA, VERDE, ROJO, MORADO, GRIS]),
-    "savefig.dpi": 200, "figure.dpi": 100,
-})
+# Paleta y letra comunes a todo el proyecto (estilo.py)
+from estilo import AZUL, GRIS, MORADO, NARANJA, ROJO, VERDE, comas  # noqa: E402
 
 
 # ---------- 2. Metodo propio: formulas obtenidas de grad S = 0 ----------
@@ -201,6 +194,7 @@ def polinomios(grados=(1, 2, 3, 4)):
 
 # ---------- 6. Graficas ----------
 def guardar(nombre):
+    comas(plt.gcf())
     plt.tight_layout()
     plt.savefig(FIG / nombre, bbox_inches="tight")
     plt.close()
@@ -231,9 +225,9 @@ def graficas(a, b):
     # 2. Recta optima y otras rectas
     fig, ax = plt.subplots(figsize=(8, 5))
     puntos(ax, etiquetas=False)
-    ax.plot(xs, a * xs + b, color=ROJO, lw=2.5, label=f"Óptima: a={a:.4f}, b={b:.3f}, S={s_min:.2f}")
+    ax.plot(xs, a * xs + b, color=ROJO, lw=2.5, label=f"Óptima: a = {a:.4f};  b = {b:.3f};  S = {s_min:.2f}")
     for (a2, b2), est, col in zip(OTRAS_RECTAS, ["--", "-.", ":"], [NARANJA, VERDE, MORADO]):
-        ax.plot(xs, a2 * xs + b2, est, color=col, lw=1.8, label=f"a={a2}, b={b2}, S={error_S(a2, b2, X, Y):.2f}")
+        ax.plot(xs, a2 * xs + b2, est, color=col, lw=1.8, label=f"a = {a2};  b = {b2};  S = {error_S(a2, b2, X, Y):.2f}")
     ax.set_title("Recta de mínimos cuadrados comparada con otras rectas")
     ax.legend(fontsize=9)
     guardar("02_recta_ajuste.png")
@@ -246,7 +240,7 @@ def graficas(a, b):
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(projection="3d")
     ax.plot_surface(A, B, S, cmap="viridis", alpha=0.85)
-    ax.scatter([a], [b], [s_min], color=ROJO, s=60, label=f"Mínimo ({a:.4f}, {b:.3f}, {s_min:.2f})")
+    ax.scatter([a], [b], [s_min], color=ROJO, s=60, label=f"Mínimo ({a:.4f}; {b:.3f}; {s_min:.2f})")
     ax.set_xlabel("a (cm/g)")
     ax.set_ylabel("b (cm)")
     ax.set_zlabel("S(a,b) (cm²)")
@@ -279,7 +273,7 @@ def graficas(a, b):
     fig, ax = plt.subplots(figsize=(8, 5.5))
     cs = ax.contour(A, B, S, levels=[2, 2.5, 4, 7, 12, 20, 35, 60, 100], cmap="viridis")
     ax.clabel(cs, fontsize=8)
-    ax.plot(a, b, "*", color=ROJO, ms=14, label=f"(a*, b*) = ({a:.4f}, {b:.3f}),  S = {s_min:.2f}")
+    ax.plot(a, b, "*", color=ROJO, ms=14, label=f"(a*; b*) = ({a:.4f}; {b:.3f}),  S = {s_min:.2f}")
     ax.set_xlabel("a (cm/g)")
     ax.set_ylabel("b (cm)")
     ax.set_title("Curvas de nivel de S(a,b)")
